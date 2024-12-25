@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:dagangan/core/supabase_config.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:dagangan/screens/login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'routes/app_routes.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await SupabaseConfig.init();
-  
-  runApp(const DaganganApp());
+
+  await Supabase.initialize(
+    url: 'https://xcewrxwbprwxsegctoqf.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjZXdyeHdicHJ3eHNlZ2N0b3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4ODA5NjgsImV4cCI6MjA1MDQ1Njk2OH0.ZDIUZlY-iuDmdLYmhp847q_wuAOkKrDY0roJ1OxEqEM',
+  );
+
+  runApp(MyApp());
 }
 
-class DaganganApp extends StatelessWidget {
-  const DaganganApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dagangan App',
+      debugShowCheckedModeBanner: false,
+      title: 'Dagangan POS',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        fontFamily: 'Poppins',
+        scaffoldBackgroundColor: Color(0xFFF5F5F5),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF6A11CB),
+          elevation: 0,
+        ),
       ),
-      home: const LoginScreen(),
+      initialRoute: '/login', // Mengarahkan langsung ke halaman login
+      routes: appRoutes,
     );
   }
 }

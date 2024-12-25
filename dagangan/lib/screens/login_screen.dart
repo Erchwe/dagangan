@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dagangan/core/auth_services.dart';
 import 'package:dagangan/screens/home_screen.dart';
 
@@ -13,7 +14,29 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _rememberMe = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberedUser();
+  }
+
+  /// 🔑 **Load Remembered User**
+  Future<void> _loadRememberedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('remembered_email');
+    final rememberMe = prefs.getBool('remember_me') ?? false;
+
+    if (rememberMe && email != null) {
+      setState(() {
+        _emailController.text = email;
+        _rememberMe = rememberMe;
+      });
+    }
+  }
+
+  /// 🔒 **Login Logic**
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -23,9 +46,20 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
+
+      if (_rememberMe) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('remembered_email', _emailController.text.trim());
+        await prefs.setBool('remember_me', _rememberMe);
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('remembered_email');
+        await prefs.remove('remember_me');
+      }
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,6 +143,39 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: (value) {
+                                setState(() {
+                                  _rememberMe = value ?? false;
+                                });
+                              },
+                              activeColor: Color(0xFF6A11CB),
+                            ),
+                            const Text('Remember Me'),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Forgot Password? Coming soon!'),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(color: Colors.blueAccent),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -133,20 +200,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Forgot Password? Coming soon!'),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.blueAccent),
                       ),
                     ),
                   ],
