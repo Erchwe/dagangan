@@ -104,7 +104,7 @@ class _HoverableCardState extends State<HoverableCard> {
         },
         onTapCancel: () => setState(() => _isClicked = false),
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             color: _isClicked
@@ -112,14 +112,14 @@ class _HoverableCardState extends State<HoverableCard> {
                 : _isHovered
                     ? Colors.deepPurple[100]
                     : Colors.white,
-            borderRadius: BorderRadius.circular(8), // Border radius tetap konsisten
+            borderRadius: BorderRadius.circular(8),
             boxShadow: _isHovered
                 ? [
                     BoxShadow(
                       color: Colors.deepPurple.withOpacity(0.4),
                       spreadRadius: 1,
                       blurRadius: 8,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     )
                   ]
                 : [
@@ -127,12 +127,12 @@ class _HoverableCardState extends State<HoverableCard> {
                       color: Colors.grey.withOpacity(0.2),
                       spreadRadius: 1,
                       blurRadius: 4,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     )
                   ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8), // Pastikan radius tidak hilang
+            borderRadius: BorderRadius.circular(8),
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),

@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _rememberMe = value ?? false;
                                 });
                               },
-                              activeColor: Color(0xFF6A11CB),
+                              activeColor: const Color(0xFF6A11CB),
                             ),
                             const Text('Remember Me'),
                           ],

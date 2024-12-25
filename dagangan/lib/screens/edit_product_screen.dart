@@ -7,7 +7,7 @@ import '../models/category_model.dart';
 class EditProductScreen extends StatefulWidget {
   final Product product;
 
-  EditProductScreen({required this.product});
+  const EditProductScreen({super.key, required this.product});
 
   @override
   State<EditProductScreen> createState() => _EditProductScreenState();
@@ -61,7 +61,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
       Navigator.pop(context); // Kembali ke halaman produk
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Product updated successfully')),
+        const SnackBar(content: Text('Product updated successfully')),
       );
     } catch (e) {
       print('Error: $e');
@@ -80,7 +80,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Product'),
+        title: const Text('Edit Product'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -89,7 +89,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Product Name',
                   border: OutlineInputBorder(),
                 ),
@@ -97,7 +97,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: descController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Product Description',
                   border: OutlineInputBorder(),
                 ),
@@ -105,7 +105,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: priceController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Price',
                   border: OutlineInputBorder(),
                 ),
@@ -114,7 +114,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: stockController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Stock',
                   border: OutlineInputBorder(),
                 ),
@@ -124,7 +124,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               DropdownButtonFormField<String>(
                 value: selectedCategoryId,
                 isExpanded: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Select Category',
                   border: OutlineInputBorder(),
                 ),
@@ -145,13 +145,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
               ElevatedButton(
                 onPressed: saveChanges,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF6A11CB),
-                  padding: EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: const Color(0xFF6A11CB),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Save Changes',
                   style: TextStyle(
                     fontSize: 16,
