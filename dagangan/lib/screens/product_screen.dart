@@ -8,7 +8,7 @@ class ProductScreen extends StatefulWidget {
   final String categoryId;
   final String categoryName;
 
-  ProductScreen({required this.categoryId, required this.categoryName});
+  const ProductScreen({super.key, required this.categoryId, required this.categoryName});
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -46,16 +46,16 @@ class _ProductScreenState extends State<ProductScreen> {
     final confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Confirm Deletion'),
+        title: const Text('Confirm Deletion'),
         content: Text('Are you sure you want to delete "${product.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -65,7 +65,7 @@ class _ProductScreenState extends State<ProductScreen> {
       await _productService.deleteProduct(product.id);
       loadProducts();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Product deleted successfully')),
+        const SnackBar(content: Text('Product deleted successfully')),
       );
     }
   }
@@ -77,18 +77,18 @@ class _ProductScreenState extends State<ProductScreen> {
         title: Text('Products - ${widget.categoryName}'),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : products.isEmpty
-              ? Center(child: Text('No products available for this category.'))
+              ? const Center(child: Text('No products available for this category.'))
               : ListView.builder(
                   itemCount: products.length,
                   itemBuilder: (context, index) {
                     final product = products[index];
                     return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       elevation: 2,
                       child: ListTile(
-                        leading: CircleAvatar(
+                        leading: const CircleAvatar(
                           backgroundColor: Colors.deepPurple,
                           child: Icon(Icons.shopping_bag, color: Colors.white),
                         ),
@@ -101,12 +101,12 @@ class _ProductScreenState extends State<ProductScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
+                              icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () => editProduct(product),
                               tooltip: 'Edit Product',
                             ),
                             IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => deleteProduct(product),
                               tooltip: 'Delete Product',
                             ),

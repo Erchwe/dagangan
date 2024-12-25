@@ -53,6 +53,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 _buildMenuItem(context, Icons.shopping_bag, 'Categories', '/categories'),
                 _buildMenuItem(context, Icons.settings, 'Settings', '/settings'),
+                _buildMenuItem(context, Icons.shopping_cart, 'Input Transaksi', '/transaction'),
               ],
             ),
           ),
@@ -114,7 +115,7 @@ class _HoverableCardState extends State<HoverableCard> {
                 : _isHovered
                     ? Colors.deepPurple[100]
                     : Colors.white,
-            borderRadius: BorderRadius.circular(8), // Tetap pertahankan border radius
+            borderRadius: BorderRadius.circular(8),
             boxShadow: _isHovered
                 ? [
                     BoxShadow(
@@ -134,7 +135,7 @@ class _HoverableCardState extends State<HoverableCard> {
                   ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8), // Pastikan radius tetap diterapkan di dalam kartu
+            borderRadius: BorderRadius.circular(8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
