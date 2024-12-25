@@ -24,12 +24,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFFF5F5F5),
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF6A11CB),
           elevation: 0,
+          titleTextStyle: TextStyle(
+            color: Colors.white
+          ),
+          iconTheme: IconThemeData(
+            color: Colors.white,
+          ),
         ),
       ),
-      initialRoute: '/login', // Mengarahkan langsung ke halaman login
+      initialRoute: '/login',
       routes: appRoutes,
     );
   }
