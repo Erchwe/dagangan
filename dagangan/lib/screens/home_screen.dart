@@ -62,22 +62,107 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, String route) {
-    return GestureDetector(
+    return HoverableCard(
+      icon: icon,
+      title: title,
       onTap: () {
         Navigator.pushNamed(context, route);
       },
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Color(0xFF6A11CB)),
-            SizedBox(height: 10),
-            Text(title, style: TextStyle(fontSize: 14)),
-          ],
+    );
+  }
+}
+
+// Widget Khusus untuk Animasi Hover dan Klik
+class HoverableCard extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const HoverableCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  State<HoverableCard> createState() => _HoverableCardState();
+}
+
+class _HoverableCardState extends State<HoverableCard> {
+  bool _isHovered = false;
+  bool _isClicked = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isClicked = true),
+        onTapUp: (_) {
+          setState(() => _isClicked = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isClicked = false),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: _isClicked
+                ? Colors.deepPurple[300]
+                : _isHovered
+                    ? Colors.deepPurple[100]
+                    : Colors.white,
+            borderRadius: BorderRadius.circular(8), // Tetap pertahankan border radius
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: Colors.deepPurple.withOpacity(0.4),
+                      spreadRadius: 1,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    )
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    )
+                  ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8), // Pastikan radius tetap diterapkan di dalam kartu
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.icon,
+                  size: 40,
+                  color: _isClicked
+                      ? Colors.white
+                      : _isHovered
+                          ? Colors.deepPurple
+                          : Color(0xFF6A11CB),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _isClicked
+                        ? Colors.white
+                        : _isHovered
+                            ? Colors.deepPurple
+                            : Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/category_model.dart';
 import '../services/category_service.dart';
-import 'product_screen.dart'; // Import ProductScreen
+import 'product_screen.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -37,15 +37,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: screenWidth > 800 ? 3 : 2, // Lebih banyak kolom di layar lebar
+            crossAxisCount: screenWidth > 800 ? 3 : 2,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
-            childAspectRatio: 1.2, // Proporsi yang lebih kompak
+            childAspectRatio: 1.2,
           ),
           itemCount: categories.length,
           itemBuilder: (context, index) {
             final category = categories[index];
-            return GestureDetector(
+            return HoverableCard(
+              title: category.name,
               onTap: () {
                 Navigator.push(
                   context,
@@ -57,26 +58,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 );
               },
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                margin: const EdgeInsets.all(4),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      category.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
             );
           },
         ),
@@ -86,6 +67,92 @@ class _CategoryScreenState extends State<CategoryScreen> {
           // Tambah Kategori Baru
         },
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+// Widget Khusus untuk Animasi Hover dan Klik
+class HoverableCard extends StatefulWidget {
+  final String title;
+  final VoidCallback onTap;
+
+  const HoverableCard({
+    super.key,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  State<HoverableCard> createState() => _HoverableCardState();
+}
+
+class _HoverableCardState extends State<HoverableCard> {
+  bool _isHovered = false;
+  bool _isClicked = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isClicked = true),
+        onTapUp: (_) {
+          setState(() => _isClicked = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isClicked = false),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: _isClicked
+                ? Colors.deepPurple[300]
+                : _isHovered
+                    ? Colors.deepPurple[100]
+                    : Colors.white,
+            borderRadius: BorderRadius.circular(8), // Border radius tetap konsisten
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: Colors.deepPurple.withOpacity(0.4),
+                      spreadRadius: 1,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    )
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    )
+                  ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8), // Pastikan radius tidak hilang
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _isClicked
+                        ? Colors.white
+                        : _isHovered
+                            ? Colors.deepPurple
+                            : Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
