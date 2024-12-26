@@ -31,13 +31,20 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Menentukan jumlah kolom berdasarkan lebar layar
+    int crossAxisCount = screenWidth > 1200
+        ? 4 // Jika layar sangat lebar
+        : screenWidth > 800
+            ? 3 // Jika layar sedang
+            : 2; // Jika layar kecil
+
     return Scaffold(
       appBar: AppBar(title: const Text('Categories')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: screenWidth > 800 ? 3 : 2,
+            crossAxisCount: crossAxisCount,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
             childAspectRatio: 1.2,
