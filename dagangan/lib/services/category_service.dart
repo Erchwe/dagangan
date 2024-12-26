@@ -9,12 +9,12 @@ class CategoryService {
     return response.map<Category>((e) => Category.fromJson(e)).toList();
   }
 
-  Future<void> addCategory(String name, String imageUrl) async {
-    await supabase.from('categories').insert({'name': name, 'image_url': imageUrl});
+  Future<void> addCategory(String name, String description) async {
+    await supabase.from('categories').insert({'name': name, 'description': description});
   }
 
-  Future<void> updateCategory(String id, String name, String imageUrl) async {
-    await supabase.from('categories').update({'name': name, 'image_url': imageUrl}).eq('id', id);
+  Future<void> updateCategory(String id, String name, String description) async {
+    await supabase.from('categories').update({'name': name, 'description': description}).eq('id', id);
   }
 
   Future<void> deleteCategory(String id) async {

@@ -13,6 +13,9 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final CategoryService _categoryService = CategoryService();
   List<Category> categories = [];
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -27,16 +30,143 @@ class _CategoryScreenState extends State<CategoryScreen> {
     });
   }
 
+  /// New cat modal
+  void _showAddCategoryModal() {
+    _nameController.clear();
+    _descriptionController.clear();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'New Category',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'New Category Name',
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6), 
+                      borderSide: BorderSide(color: Colors.grey.shade500, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Category name cannot be empty';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey.shade500, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState?.validate() ?? false) {
+                  await _addCategory();
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: const Text(
+                'Save',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Fungsi untuk menambahkan kategori ke database
+  Future<void> _addCategory() async {
+    final String name = _nameController.text.trim();
+    final String description = _descriptionController.text.trim();
+
+    if (name.isNotEmpty) {
+      try {
+        await _categoryService.addCategory(name, description);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('New category added'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        loadCategories();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menambahkan kategori: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Menentukan jumlah kolom berdasarkan lebar layar
+    // Column (sesuai width)
     int crossAxisCount = screenWidth > 1200
-        ? 4 // Jika layar sangat lebar
+        ? 4
         : screenWidth > 800
-            ? 3 // Jika layar sedang
-            : 2; // Jika layar kecil
+            ? 3
+            : 2;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Categories')),
@@ -69,17 +199,26 @@ class _CategoryScreenState extends State<CategoryScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Tambah Kategori Baru
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddCategoryModal,
+        backgroundColor: Colors.deepPurple,
+        icon: const Icon(
+          Icons.add,
+          color: Colors.white, 
+        ),
+        label: const Text(
+          'Add Category',
+          style: TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
 }
 
-// Widget Khusus untuk Animasi Hover dan Klik
+// Widget Card (interaction animation)
 class HoverableCard extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
@@ -112,7 +251,6 @@ class _HoverableCardState extends State<HoverableCard> {
         onTapCancel: () => setState(() => _isClicked = false),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
           decoration: BoxDecoration(
             color: _isClicked
                 ? Colors.deepPurple[300]
@@ -120,43 +258,23 @@ class _HoverableCardState extends State<HoverableCard> {
                     ? Colors.deepPurple[100]
                     : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: Colors.deepPurple.withOpacity(0.4),
-                      spreadRadius: 1,
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    )
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 4,
+              )
+            ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: _isClicked
-                        ? Colors.white
-                        : _isHovered
-                            ? Colors.deepPurple
-                            : Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+          child: Center(
+            child: Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: _isHovered ? Colors.deepPurple : Colors.black87,
               ),
+              textAlign: TextAlign.center,
             ),
           ),
         ),

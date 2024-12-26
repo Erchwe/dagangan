@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
               itemCount: 6, // Jumlah total menu item
               itemBuilder: (context, index) {
                 final menuItems = [
-                  {'icon': Icons.shopping_bag, 'title': 'Categories', 'route': '/categories'},
+                  {'icon': Icons.shopping_bag, 'title': 'Manage Products', 'route': '/categories'},
                   {'icon': Icons.settings, 'title': 'Settings', 'route': '/settings'},
                   {'icon': Icons.shopping_cart, 'title': 'Input Transaction', 'route': '/transaction'},
                   {'icon': Icons.person, 'title': 'Profile', 'route': '/profile'},

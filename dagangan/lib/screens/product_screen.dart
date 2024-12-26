@@ -3,6 +3,7 @@ import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../utils/currency_formatter.dart';
 import 'edit_product_screen.dart';
+import 'add_product_screen.dart';
 
 class ProductScreen extends StatefulWidget {
   final String categoryId;
@@ -25,6 +26,7 @@ class _ProductScreenState extends State<ProductScreen> {
     loadProducts();
   }
 
+  /// Memuat daftar produk berdasarkan kategori
   void loadProducts() async {
     final data = await _productService.fetchProductsByCategory(widget.categoryId);
     setState(() {
@@ -33,6 +35,7 @@ class _ProductScreenState extends State<ProductScreen> {
     });
   }
 
+  /// Navigasi ke halaman edit produk
   void editProduct(Product product) {
     Navigator.push(
       context,
@@ -42,6 +45,7 @@ class _ProductScreenState extends State<ProductScreen> {
     ).then((_) => loadProducts()); // Refresh daftar produk setelah edit
   }
 
+  /// Menghapus produk dengan konfirmasi
   void deleteProduct(Product product) async {
     final confirm = await showDialog(
       context: context,
@@ -101,7 +105,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              icon: const Icon(Icons.edit, color: Colors.grey),
                               onPressed: () => editProduct(product),
                               tooltip: 'Edit Product',
                             ),
@@ -116,6 +120,34 @@ class _ProductScreenState extends State<ProductScreen> {
                     );
                   },
                 ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddProductScreen(
+                categoryId: widget.categoryId,
+                categoryName: widget.categoryName,
+              ),
+            ),
+          ).then((_) => loadProducts()); // Refresh produk setelah menambah produk baru
+        },
+        backgroundColor: Colors.deepPurple,
+        icon: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 24,
+        ),
+        label: const Text(
+          'Add Product',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
