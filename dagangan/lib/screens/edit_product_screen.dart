@@ -22,8 +22,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
   late TextEditingController priceController;
   late TextEditingController stockController;
 
-  String? selectedCategoryId; // Variabel untuk kategori terpilih
-  List<Category> categories = []; // Daftar kategori
+  String? selectedCategoryId; 
+  List<Category> categories = []; 
 
   @override
   void initState() {
@@ -32,12 +32,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
     descController = TextEditingController(text: widget.product.description);
     priceController = TextEditingController(text: widget.product.price.toString());
     stockController = TextEditingController(text: widget.product.stock.toString());
-    selectedCategoryId = widget.product.categoryId; // Set default category ID
+    selectedCategoryId = widget.product.categoryId;
 
     loadCategories();
   }
 
-  /// **Memuat Daftar Kategori**
   void loadCategories() async {
     final data = await _categoryService.fetchCategories();
     setState(() {
@@ -45,7 +44,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
     });
   }
 
-  /// **Simpan Perubahan Produk**
   void saveChanges() async {
     try {
       final updatedProduct = Product(
@@ -54,12 +52,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
         price: double.parse(priceController.text),
         stock: int.parse(stockController.text),
         categoryId: selectedCategoryId ?? widget.product.categoryId,
-        description: descController.text, // Ini akan di-mapping ke 'product_desc'
+        description: descController.text,
       );
 
       await _productService.updateProduct(updatedProduct);
 
-      Navigator.pop(context); // Kembali ke halaman produk
+      Navigator.pop(context); 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Product updated successfully')),
       );
@@ -73,8 +71,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
       );
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -146,16 +142,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 onPressed: saveChanges,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6A11CB),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: Colors.white, 
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16), 
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8), 
                   ),
+                  minimumSize: const Size(double.infinity, 50), 
                 ),
                 child: const Text(
                   'Save Changes',
                   style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold, 
                   ),
                 ),
               ),

@@ -21,7 +21,6 @@ class ProductService {
   /// **Add Product**
   Future<void> addProduct(Product product) async {
     await supabase.from('products').insert({
-      'id': product.id,
       'name': product.name,
       'product_desc': product.description,
       'price': product.price,
@@ -29,6 +28,7 @@ class ProductService {
       'category': product.categoryId,
     });
   }
+
 
   /// **Update Product**
   Future<void> updateProduct(Product product) async {
