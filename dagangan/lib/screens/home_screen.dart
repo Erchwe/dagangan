@@ -24,6 +24,16 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mendapatkan lebar layar
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Menentukan jumlah kolom berdasarkan lebar layar
+    int crossAxisCount = screenWidth > 1200
+        ? 4 // Jika layar sangat lebar, tampilkan 4 kolom
+        : screenWidth > 800
+            ? 3 // Jika layar sedang, tampilkan 3 kolom
+            : 2; // Jika layar kecil, tampilkan 2 kolom
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Dashboard'),
@@ -45,16 +55,32 @@ class HomeScreen extends StatelessWidget {
           ),
           SizedBox(height: 20),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
+            child: GridView.builder(
               padding: EdgeInsets.all(10),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              children: [
-                _buildMenuItem(context, Icons.shopping_bag, 'Categories', '/categories'),
-                _buildMenuItem(context, Icons.settings, 'Settings', '/settings'),
-                _buildMenuItem(context, Icons.shopping_cart, 'Input Transaksi', '/transaction'),
-              ],
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: 6, // Jumlah total menu item
+              itemBuilder: (context, index) {
+                final menuItems = [
+                  {'icon': Icons.shopping_bag, 'title': 'Categories', 'route': '/categories'},
+                  {'icon': Icons.settings, 'title': 'Settings', 'route': '/settings'},
+                  {'icon': Icons.shopping_cart, 'title': 'Input Transaction', 'route': '/transaction'},
+                  {'icon': Icons.person, 'title': 'Profile', 'route': '/profile'},
+                  {'icon': Icons.bar_chart, 'title': 'Reports', 'route': '/reports'},
+                  {'icon': Icons.support_agent, 'title': 'Support', 'route': '/support'},
+                ];
+
+                final item = menuItems[index];
+                return _buildMenuItem(
+                  context,
+                  item['icon'] as IconData,
+                  item['title'] as String,
+                  item['route'] as String,
+                );
+              },
             ),
           ),
         ],
@@ -134,35 +160,32 @@ class _HoverableCardState extends State<HoverableCard> {
                     )
                   ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  widget.icon,
-                  size: 40,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                widget.icon,
+                size: 40,
+                color: _isClicked
+                    ? Colors.white
+                    : _isHovered
+                        ? Colors.deepPurple
+                        : Color(0xFF6A11CB),
+              ),
+              SizedBox(height: 10),
+              Text(
+                widget.title,
+                style: TextStyle(
+                  fontSize: 14,
                   color: _isClicked
                       ? Colors.white
                       : _isHovered
                           ? Colors.deepPurple
-                          : Color(0xFF6A11CB),
+                          : Colors.black87,
+                  fontWeight: FontWeight.w500,
                 ),
-                SizedBox(height: 10),
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _isClicked
-                        ? Colors.white
-                        : _isHovered
-                            ? Colors.deepPurple
-                            : Colors.black87,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

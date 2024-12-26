@@ -6,6 +6,8 @@ import '../models/category_model.dart';
 import '../utils/currency_formatter.dart';
 
 class TransactionScreen extends StatefulWidget {
+  const TransactionScreen({super.key});
+
   @override
   State<TransactionScreen> createState() => _TransactionScreenState();
 }
@@ -71,128 +73,297 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Input Transaksi'),
+      appBar: AppBar(title: const Text('Transaction Input')),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isLandscape = constraints.maxWidth > constraints.maxHeight;
+
+          return isLandscape
+              ? Row(
+                  children: [
+                    Expanded(
+                      flex: cart.isNotEmpty ? 3 : 5,
+                      child: _buildProductListByCategory(),
+                    ),
+
+                    if (cart.isNotEmpty)
+                      Container(
+                        width: 1,
+                        color: Colors.grey[300],
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                      ),
+
+                    /// Keranjang (40%)
+                    if (cart.isNotEmpty)
+                      Expanded(
+                        flex: 2,
+                        child: _buildCart(),
+                      ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    /// Daftar Produk (60%)
+                    Expanded(
+                      flex: cart.isNotEmpty ? 3 : 5,
+                      child: _buildProductListByCategory(),
+                    ),
+
+                    /// Garis Horizontal jika keranjang tidak kosong
+                    if (cart.isNotEmpty)
+                      Container(
+                        height: 1,
+                        color: Colors.grey[300],
+                        margin: EdgeInsets.symmetric(horizontal: 8),
+                      ),
+
+                    /// Keranjang (40%)
+                    if (cart.isNotEmpty)
+                      Expanded(
+                        flex: 2,
+                        child: _buildCart(),
+                      ),
+                  ],
+                );
+        },
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: filterProducts,
-              decoration: InputDecoration(
-                hintText: 'Cari Produk...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+    );
+  }
+
+  /// Widget Produk per Kategori dengan Search Bar
+  Widget _buildProductListByCategory() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = screenWidth > 1200
+        ? 4
+        : screenWidth > 800
+            ? 3
+            : 2;
+
+    return Column(
+      children: [
+        /// Search Bar di bagian atas
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            onChanged: filterProducts,
+            decoration: InputDecoration(
+              hintText: 'Search Products',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          Expanded(
-            child: isLoading
-                ? Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      final products = categorizedProducts[category.name] ?? [];
+        ),
+        Expanded(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+                    final products = categorizedProducts[category.name] ?? [];
 
-                      final filteredProducts = products.where((product) {
-                        return product.name
-                            .toLowerCase()
-                            .contains(searchQuery);
-                      }).toList();
+                    final filteredProducts = products.where((product) {
+                      return product.name.toLowerCase().contains(searchQuery);
+                    }).toList();
 
-                      return ExpansionTile(
-                        title: Text(
-                          category.name,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        initiallyExpanded: true,
-                        children: filteredProducts.map((product) {
-                          return ListTile(
-                            title: Text(product.name),
-                            subtitle: Text(
-                                'Harga: ${formatRupiah(product.price)} | Stok: ${product.stock}'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.remove, color: Colors.red),
-                                  onPressed: () => decrementProduct(product),
-                                ),
-                                Text(
-                                  cart[product.id]?.toString() ?? '0',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.add, color: Colors.blue),
-                                  onPressed: () => incrementProduct(product),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/cart', arguments: {'cart': cart});
-                },
-                icon: Stack(
-                  children: [
-                    Icon(Icons.shopping_cart, color: Colors.white),
-                    if (cart.isNotEmpty)
-                      Positioned(
-                        right: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          constraints: BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            '${getTotalCartItems()}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
+                            category.name,
+                            style: const TextStyle(
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
-                            textAlign: TextAlign.center,
                           ),
                         ),
-                      ),
-                  ],
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 8.0,
+                            mainAxisSpacing: 8.0,
+                            childAspectRatio: 0.9,
+                          ),
+                          itemCount: filteredProducts.length,
+                          itemBuilder: (context, productIndex) {
+                            final product = filteredProducts[productIndex];
+                            return HoverableCard(
+                              title: product.name,
+                              subtitle:
+                                  '${formatRupiah(product.price)} | Stok: ${product.stock}',
+                              icon: Icons.shopping_cart,
+                              onTap: () => incrementProduct(product),
+                              onRemove: () => decrementProduct(product),
+                              cartCount: cart[product.id]?.toString() ?? '0',
+                            );
+                          },
+                        ),
+                        Divider(
+                          color: Colors.grey[300],
+                          thickness: 1,
+                          height: 32,
+                        ),
+                      ],
+                    );
+                  },
                 ),
-                label: Text(
-                  'Lihat Keranjang',
-                  style: TextStyle(color: Colors.white),
-                ),
+        ),
+      ],
+    );
+  }
+
+  /// Widget Keranjang
+  Widget _buildCart() {
+    return Container(
+      color: Colors.grey[100],
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          const Text(
+            'Cart',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              children: cart.entries.map((entry) {
+                final product = categorizedProducts.values
+                    .expand((list) => list)
+                    .firstWhere((p) => p.id == entry.key);
+                return ListTile(
+                  title: Text(product.name),
+                  subtitle: Text('${formatRupiah(product.price)}'),
+                  trailing: Text('x${entry.value}'),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          /// Tombol Confirm Payment
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: SizedBox(
+              width: double.infinity, // Tombol akan mengambil lebar penuh
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Pembayaran Dikonfirmasi')),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: Color(0xFF6A11CB),
+                  backgroundColor: Colors.deepPurple, // Warna latar tombol
+                  foregroundColor: Colors.white, // Warna teks dan ikon
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Confirm Payment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: 24,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+          const SizedBox(height: 12),
         ],
+      ),
+    );
+  }
+}
+
+
+/// Widget HoverableCard
+class HoverableCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+  final String cartCount;
+
+  const HoverableCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+    required this.onRemove,
+    required this.cartCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: Colors.deepPurple),
+            SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.remove, color: Colors.red),
+                  onPressed: onRemove,
+                ),
+                Text(
+                  cartCount,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.add, color: Colors.green),
+                  onPressed: onTap,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
