@@ -8,6 +8,7 @@ class ConfirmPaymentScreen extends StatefulWidget {
   final String paymentMethod;
   final double totalAmount;
   final String cashier;
+  final double change;
   final Map<int, int>? cashDenominations;
   final Map<int, int>? changeDenominations;
 
@@ -18,6 +19,7 @@ class ConfirmPaymentScreen extends StatefulWidget {
     required this.paymentMethod,
     required this.totalAmount,
     required this.cashier,
+    required this.change,
     this.cashDenominations,
     this.changeDenominations,
   });
@@ -54,7 +56,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
         'payment_method': widget.paymentMethod,
         'cashier': widget.cashier,
         'cash_given': widget.paymentMethod == 'cash' ? widget.totalAmount : null,
-        'change': widget.paymentMethod == 'cash' ? (widget.totalAmount - widget.totalAmount) : null,
+        'change': widget.paymentMethod == 'cash' ? widget.change : null,
         'created_at': DateTime.now().toIso8601String(),
       }).select().single();
 

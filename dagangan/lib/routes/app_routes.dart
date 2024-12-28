@@ -34,6 +34,9 @@ final Map<String, WidgetBuilder> appRoutes = {
         ? (args['totalAmount'] as num).toDouble()
         : 0.0,
       cashier: args['cashier'] as String,
+      change: (args['change'] != null) 
+        ? (args['change'] as num).toDouble()
+        : 0.0,
       cashDenominations: (args['cashDenominations'] != null)
           ? (args['cashDenominations'] as Map).map<int, int>((key, value) => MapEntry(key as int, value as int))
           : null,
