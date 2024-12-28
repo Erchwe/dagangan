@@ -38,12 +38,115 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
     try {
       final supabase = Supabase.instance.client;
 
-      await supabase.from('transactions').insert({
+      // Hitung Grand Total jika tidak tersedia di widget.totalAmount
+      double grandTotal = widget.totalAmount;
+
+      if (grandTotal == 0.0) {
+        grandTotal = widget.cart.entries.fold(0.0, (total, entry) {
+          final product = widget.products.firstWhere((p) => p.id == entry.key);
+          return total + (product.price * entry.value);
+        });
+      }
+
+      // Simpan transaksi ke tabel 'transactions'
+      final response = await supabase.from('transactions').insert({
         'total_amount': widget.totalAmount,
         'payment_method': widget.paymentMethod,
         'cashier': widget.cashier,
+        'cash_given': widget.paymentMethod == 'cash' ? widget.totalAmount : null,
+        'change': widget.paymentMethod == 'cash' ? (widget.totalAmount - widget.totalAmount) : null,
         'created_at': DateTime.now().toIso8601String(),
-      });
+      }).select().single();
+
+      print('Transaction Saved: $response');
+
+      // **Update stok produk**
+      for (var entry in widget.cart.entries) {
+        final productId = entry.key;
+        final quantity = entry.value;
+
+        final product = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', productId)
+            .single();
+
+        if (product != null) {
+          final currentStock = product['stock'] as int;
+          final updatedStock = currentStock - quantity;
+
+          if (updatedStock >= 0) {
+            await supabase.from('products').update({
+              'stock': updatedStock,
+            }).eq('id', productId);
+          } else {
+            throw Exception('Stock insufficient for product ID: $productId');
+          }
+        }
+      }
+
+      // **Perbarui cash jika metode pembayaran cash**
+      // Update Cash Denominations
+      if (widget.paymentMethod == 'cash' && widget.cashDenominations != null) {
+        for (var entry in widget.cashDenominations!.entries) {
+          final denomination = entry.key; // Pecahan uang (100000, 50000, dll.)
+          final quantity = entry.value; // Jumlah lembar uang
+
+          if (quantity > 0) {
+            // Periksa stok saat ini
+            final existingCash = await supabase
+                .from('cash')
+                .select('quantity')
+                .eq('denomination', denomination)
+                .single();
+
+            if (existingCash != null) {
+              final currentQuantity = existingCash['quantity'] as int;
+              final updatedQuantity = currentQuantity + quantity;
+
+              // Update jumlah stok uang tunai
+              await supabase.from('cash').update({
+                'quantity': updatedQuantity,
+              }).eq('denomination', denomination);
+            }
+          }
+        }
+      }
+
+      // Kurangi stok untuk kembalian
+      if (widget.paymentMethod == 'cash' && widget.changeDenominations != null) {
+        for (var entry in widget.changeDenominations!.entries) {
+          final denomination = entry.key; // Pecahan uang
+          final quantity = entry.value; // Jumlah uang untuk kembalian
+
+          if (quantity > 0) {
+            // Periksa stok saat ini
+            final existingCash = await supabase
+                .from('cash')
+                .select('quantity')
+                .eq('denomination', denomination)
+                .single();
+
+            if (existingCash != null) {
+              final currentQuantity = existingCash['quantity'] as int;
+
+              // Pastikan stok cukup untuk dikurangi
+              if (currentQuantity >= quantity) {
+                final updatedQuantity = currentQuantity - quantity;
+
+                // Update jumlah stok uang tunai untuk kembalian
+                await supabase.from('cash').update({
+                  'quantity': updatedQuantity,
+                }).eq('denomination', denomination);
+              } else {
+                throw Exception(
+                    'Insufficient cash stock for denomination: $denomination');
+              }
+            }
+          }
+        }
+      }
+
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -54,6 +157,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
 
       Navigator.pushReplacementNamed(context, '/success');
     } catch (e) {
+      print('Failed to save transaction: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to save transaction: $e'),
@@ -66,6 +170,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
       });
     }
   }
+
 
   /// Mendapatkan daftar barang berdasarkan cart
   List<Widget> _buildProductList() {

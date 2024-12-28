@@ -170,16 +170,30 @@ class _CashInputScreenState extends State<CashInputScreen> {
       return;
     }
 
-    if (totalAmount == grandTotal) {
+    double change = totalAmount - grandTotal;
+
+    // Data yang akan dikirim ke halaman konfirmasi
+    final Map<String, dynamic> paymentArguments = {
+      'cart': widget.cart,
+      'products': widget.products,
+      'paymentMethod': 'cash',
+      'cashier': displayName,
+      'totalAmount': grandTotal, // Pastikan grandTotal dikirim untuk total transaksi
+      'cashGiven': totalAmount, // Jumlah uang yang diberikan oleh pengguna
+      'change': change, // Selisih kembalian
+      'cashDenominations': cashDenominations.map((key, value) => MapEntry(key, value)),
+      'changeDenominations': changeDenominations.map((key, value) => MapEntry(key, value)),
+    };
+
+    // Jika pembayaran pas (tanpa kembalian)
+    if (change == 0) {
       showDialog(
         context: context,
-        barrierDismissible: false, // Dialog tidak bisa ditutup dengan klik di luar
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Exact Payment'),
-            content: const Text(
-              'No change needed',
-            ),
+            content: const Text('No change needed.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -187,17 +201,7 @@ class _CashInputScreenState extends State<CashInputScreen> {
                   Navigator.pushNamed(
                     context,
                     '/confirm-payment',
-                    arguments: {
-                      'cart': widget.cart,
-                      'products': widget.products,
-                      'paymentMethod': 'cash',
-                      'cashier': displayName,
-                      'totalAmount': totalAmount,
-                      'cashGiven': totalAmount,
-                      'change': 0,
-                      'cashDenominations': cashDenominations.map((key, value) => MapEntry(key, value)),
-                      'changeDenominations': changeDenominations.map((key, value) => MapEntry(key, value)),
-                    },
+                    arguments: paymentArguments,
                   );
                 },
                 child: const Text('Proceed'),
@@ -209,21 +213,16 @@ class _CashInputScreenState extends State<CashInputScreen> {
       return;
     }
 
-    // Jika jumlah lebih besar (dengan kembalian)
+    // Jika pembayaran lebih (dengan kembalian)
     Navigator.pushNamed(
       context,
       '/confirm-payment',
-      arguments: {
-        'cart': widget.cart,
-        'products': widget.products,
-        'paymentMethod': 'cash',
-        'cashGiven': totalAmount,
-        'change': totalAmount - grandTotal,
-        'changeDenominations': changeDenominations,
-        'cashier': displayName
-      },
+      arguments: paymentArguments,
     );
+
+    print('Navigating to ConfirmPayment with Total Amount: $grandTotal, Cash Given: $totalAmount, Change: $change');
   }
+
 
 
   @override

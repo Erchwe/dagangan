@@ -419,24 +419,24 @@ class _TransactionScreenState extends State<TransactionScreen> {
               onPressed: () async {
                 if (await validateStock()) {
                   Navigator.pushNamed(
-  context,
-  '/confirm-payment',
-  arguments: {
-    'cart': cart,
-    'products': categorizedProducts.values.expand((list) => list).toList(),
-    'paymentMethod': 'cashless',
-    'totalAmount': cart.entries.fold(
-      0.0,
-      (total, entry) {
-        final product = categorizedProducts.values
-            .expand((list) => list)
-            .firstWhere((p) => p.id == entry.key);
-        return total + (product.price * entry.value);
-      },
-    ),
-    'cashier': cashier, // Pastikan displayName berisi data valid
-  },
-);
+                    context,
+                    '/confirm-payment',
+                    arguments: {
+                      'cart': cart,
+                      'products': categorizedProducts.values.expand((list) => list).toList(),
+                      'paymentMethod': 'cashless',
+                      'totalAmount': cart.entries.fold(
+                        0.0,
+                        (total, entry) {
+                          final product = categorizedProducts.values
+                              .expand((list) => list)
+                              .firstWhere((p) => p.id == entry.key);
+                          return total + (product.price * entry.value);
+                        },
+                      ),
+                      'cashier': cashier, // Pastikan displayName berisi data valid
+                    },
+                  );
 
                 }
               },
