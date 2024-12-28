@@ -90,7 +90,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       Container(
                         width: 1,
                         color: Colors.grey[300],
-                        margin: EdgeInsets.symmetric(vertical: 8),
+                        margin: const EdgeInsets.symmetric(vertical: 8),
                       ),
 
                     /// Keranjang (40%)
@@ -114,7 +114,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       Container(
                         height: 1,
                         color: Colors.grey[300],
-                        margin: EdgeInsets.symmetric(horizontal: 8),
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
                       ),
 
                     /// Keranjang (40%)
@@ -218,16 +218,34 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 
-  /// Widget Keranjang
+  void clearCart() {
+    setState(() {
+      cart.clear();
+    });
+  }
+
   Widget _buildCart() {
     return Container(
       color: Colors.grey[100],
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          const Text(
-            'Cart',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Cart',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              TextButton.icon(
+                onPressed: clearCart,
+                icon: const Icon(Icons.delete, color: Colors.red),
+                label: const Text(
+                  'Clear Cart',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Expanded(
@@ -238,58 +256,110 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     .firstWhere((p) => p.id == entry.key);
                 return ListTile(
                   title: Text(product.name),
-                  subtitle: Text('${formatRupiah(product.price)}'),
-                  trailing: Text('x${entry.value}'),
+                  subtitle: Text(formatRupiah(product.price)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove, color: Colors.red),
+                        onPressed: () => decrementProduct(product),
+                      ),
+                      Text('x${entry.value}'),
+                      IconButton(
+                        icon: const Icon(Icons.add, color: Colors.green),
+                        onPressed: () => incrementProduct(product),
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
             ),
           ),
           const SizedBox(height: 16),
-          /// Tombol Confirm Payment
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: SizedBox(
-              width: double.infinity, // Tombol akan mengambil lebar penuh
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Pembayaran Dikonfirmasi')),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple, // Warna latar tombol
-                  foregroundColor: Colors.white, // Warna teks dan ikon
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Confirm Payment',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Icon(
-                      Icons.arrow_forward,
-                      size: 24,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
+  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  child: SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      onPressed: () async {
+        bool stockValid = true;
+        String errorMessage = '';
+
+        for (var entry in cart.entries) {
+          final product = categorizedProducts.values
+              .expand((list) => list)
+              .firstWhere((p) => p.id == entry.key);
+
+          if (product.stock == 0) {
+            stockValid = false;
+            errorMessage = '${product.name} is out of stock.';
+            break;
+          }
+
+          if (entry.value > product.stock) {
+            stockValid = false;
+            errorMessage =
+                '${product.name} quantity exceeds the available stock. Available stock: (${product.stock}).';
+            break;
+          }
+        }
+
+        if (!stockValid) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          return;
+        }
+
+        // Jika stok valid, lanjutkan ke halaman pembayaran
+        Navigator.pushNamed(
+          context,
+          '/confirm-payment',
+          arguments: {
+            'cart': cart,
+            'products': categorizedProducts.values.expand((list) => list).toList(),
+          },
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Confirm Payment',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
+          SizedBox(width: 12),
+          Icon(
+            Icons.arrow_forward,
+            size: 24,
+            color: Colors.white,
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
           const SizedBox(height: 12),
         ],
       ),
     );
   }
+
 }
 
 
@@ -325,10 +395,10 @@ class HoverableCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 40, color: Colors.deepPurple),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
@@ -346,18 +416,18 @@ class HoverableCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: Icon(Icons.remove, color: Colors.red),
+                  icon: const Icon(Icons.remove, color: Colors.red),
                   onPressed: onRemove,
                 ),
                 Text(
                   cartCount,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add, color: Colors.green),
+                  icon: const Icon(Icons.add, color: Colors.green),
                   onPressed: onTap,
                 ),
               ],
