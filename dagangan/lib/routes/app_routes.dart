@@ -6,6 +6,7 @@ import '../screens/category_screen.dart';
 import '../screens/transaction_screen.dart';
 import '../screens/confirm_payment_screen.dart';
 import '../models/product_model.dart';
+import '../screens/cash_input_screen.dart';
 
 
 /// Definisi semua rute dalam aplikasi
@@ -26,6 +27,25 @@ final Map<String, WidgetBuilder> appRoutes = {
     return ConfirmPaymentScreen(
       cart: args['cart'] as Map<String, int>,
       products: args['products'] as List<Product>,
+      paymentMethod: args['paymentMethod'] as String,
+      totalAmount: args['totalAmount'] as double,
+      cashier: args['cashier'] as String,
+      cashDenominations: (args['cashDenominations'] != null)
+          ? (args['cashDenominations'] as Map).map<int, int>((key, value) => MapEntry(key as int, value as int))
+          : null,
+      changeDenominations: (args['changeDenominations'] != null)
+          ? (args['changeDenominations'] as Map).map<int, int>((key, value) => MapEntry(key as int, value as int))
+          : null,
+    );
+  },
+  '/cash-input': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    return CashInputScreen(
+      cart: args['cart'] as Map<String, int>,
+      products: args['products'] as List<Product>,
+      paymentMethod: args['paymentMethod'] as String,
+      totalAmount: args['totalAmount'] as double,
+      cashier: args['cashier'] as String,
     );
   },
 };

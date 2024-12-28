@@ -4,6 +4,7 @@ import '../services/product_service.dart';
 import '../models/product_model.dart';
 import '../models/category_model.dart';
 import '../utils/currency_formatter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
@@ -15,6 +16,7 @@ class TransactionScreen extends StatefulWidget {
 class _TransactionScreenState extends State<TransactionScreen> {
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
+  String cashier = 'Unknown Cashier';
 
   List<Category> categories = [];
   Map<String, List<Product>> categorizedProducts = {};
@@ -25,7 +27,42 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   void initState() {
     super.initState();
+    fetchCashierName();
     loadCategoriesAndProducts();
+  }
+
+  Future<void> proceedToPayment(String paymentMethod) async {
+    if (cart.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cart is empty. Add items to proceed.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (await validateStock()) {
+      Navigator.pushNamed(
+        context,
+        paymentMethod == 'cash' ? '/cash-input' : '/confirm-payment',
+        arguments: {
+          'cart': cart,
+          'products': categorizedProducts.values.expand((list) => list).toList(),
+          'paymentMethod': paymentMethod,
+          'totalAmount': cart.entries.fold(
+            0.0,
+            (total, entry) => total +
+                (categorizedProducts.values
+                    .expand((list) => list)
+                    .firstWhere((p) => p.id == entry.key)
+                    .price *
+                entry.value),
+          ),
+          'cashier': cashier,
+        },
+      );
+    }
   }
 
   void loadCategoriesAndProducts() async {
@@ -70,6 +107,29 @@ class _TransactionScreenState extends State<TransactionScreen> {
     return cart.values.fold(0, (sum, quantity) => sum + quantity);
   }
 
+  void clearCart() {
+    setState(() {
+      cart.clear();
+    });
+  }
+
+  Future<void> fetchCashierName() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null && user.userMetadata != null) {
+        setState(() {
+          cashier = user.userMetadata?['display_name'] ?? 'Unknown Cashier';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        cashier = 'Error fetching cashier name';
+      });
+      print('Error fetching cashier name: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,15 +145,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       flex: cart.isNotEmpty ? 3 : 5,
                       child: _buildProductListByCategory(),
                     ),
-
                     if (cart.isNotEmpty)
                       Container(
                         width: 1,
                         color: Colors.grey[300],
                         margin: const EdgeInsets.symmetric(vertical: 8),
                       ),
-
-                    /// Keranjang (40%)
                     if (cart.isNotEmpty)
                       Expanded(
                         flex: 2,
@@ -103,21 +160,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 )
               : Column(
                   children: [
-                    /// Daftar Produk (60%)
                     Expanded(
                       flex: cart.isNotEmpty ? 3 : 5,
                       child: _buildProductListByCategory(),
                     ),
-
-                    /// Garis Horizontal jika keranjang tidak kosong
                     if (cart.isNotEmpty)
                       Container(
                         height: 1,
                         color: Colors.grey[300],
                         margin: const EdgeInsets.symmetric(horizontal: 8),
                       ),
-
-                    /// Keranjang (40%)
                     if (cart.isNotEmpty)
                       Expanded(
                         flex: 2,
@@ -130,7 +182,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 
-  /// Widget Produk per Kategori dengan Search Bar
   Widget _buildProductListByCategory() {
     final screenWidth = MediaQuery.of(context).size.width;
     int crossAxisCount = screenWidth > 1200
@@ -141,7 +192,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
     return Column(
       children: [
-        /// Search Bar di bagian atas
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
@@ -218,12 +268,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 
-  void clearCart() {
-    setState(() {
-      cart.clear();
-    });
-  }
-
   Widget _buildCart() {
     return Container(
       color: Colors.grey[100],
@@ -260,11 +304,20 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Tombol Kurangi Produk
                       IconButton(
                         icon: const Icon(Icons.remove, color: Colors.red),
                         onPressed: () => decrementProduct(product),
                       ),
-                      Text('x${entry.value}'),
+                      // Jumlah Produk di Keranjang
+                      Text(
+                        '${entry.value}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      // Tombol Tambah Produk
                       IconButton(
                         icon: const Icon(Icons.add, color: Colors.green),
                         onPressed: () => incrementProduct(product),
@@ -276,91 +329,135 @@ class _TransactionScreenState extends State<TransactionScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-  child: SizedBox(
-    width: double.infinity,
-    child: ElevatedButton(
-      onPressed: () async {
-        bool stockValid = true;
-        String errorMessage = '';
-
-        for (var entry in cart.entries) {
-          final product = categorizedProducts.values
-              .expand((list) => list)
-              .firstWhere((p) => p.id == entry.key);
-
-          if (product.stock == 0) {
-            stockValid = false;
-            errorMessage = '${product.name} is out of stock.';
-            break;
-          }
-
-          if (entry.value > product.stock) {
-            stockValid = false;
-            errorMessage =
-                '${product.name} quantity exceeds the available stock. Available stock: (${product.stock}).';
-            break;
-          }
-        }
-
-        if (!stockValid) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          return;
-        }
-
-        // Jika stok valid, lanjutkan ke halaman pembayaran
-        Navigator.pushNamed(
-          context,
-          '/confirm-payment',
-          arguments: {
-            'cart': cart,
-            'products': categorizedProducts.values.expand((list) => list).toList(),
-          },
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Confirm Payment',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(width: 12),
-          Icon(
-            Icons.arrow_forward,
-            size: 24,
-            color: Colors.white,
-          ),
-        ],
-      ),
-    ),
-  ),
-),
-
-          const SizedBox(height: 12),
+          _buildPaymentButtons(),
         ],
       ),
     );
   }
 
+  Future<bool> validateStock() async {
+    for (var entry in cart.entries) {
+      final product = categorizedProducts.values
+          .expand((list) => list)
+          .firstWhere((p) => p.id == entry.key);
+
+      // Validasi stok produk
+      if (product.stock == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${product.name} is out of stock.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return false;
+      }
+
+      if (entry.value > product.stock) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '${product.name} quantity exceeds available stock (${product.stock}).'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  Widget _buildPaymentButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Tombol Cash Payment
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                if (await validateStock()) {
+                  Navigator.pushNamed(
+                    context,
+                    '/cash-input',
+                    arguments: {
+                      'cart': cart,
+                      'products': categorizedProducts.values.expand((list) => list).toList(),
+                      'paymentMethod': 'cash',
+                      'totalAmount': cart.entries.fold(
+                        0.0,
+                        (total, entry) => total +
+                            (categorizedProducts.values
+                                .expand((list) => list)
+                                .firstWhere((p) => p.id == entry.key)
+                                .price *
+                            entry.value),
+                      ),
+                      'cashier': cashier,
+                    },
+                  );
+                }
+              },
+              icon: const Icon(Icons.money),
+              label: const Text('Cash Payment'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12), // Spasi antara tombol
+
+          // Tombol Cashless Payment
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                if (await validateStock()) {
+                  Navigator.pushNamed(
+  context,
+  '/confirm-payment',
+  arguments: {
+    'cart': cart,
+    'products': categorizedProducts.values.expand((list) => list).toList(),
+    'paymentMethod': 'cashless',
+    'totalAmount': cart.entries.fold(
+      0.0,
+      (total, entry) {
+        final product = categorizedProducts.values
+            .expand((list) => list)
+            .firstWhere((p) => p.id == entry.key);
+        return total + (product.price * entry.value);
+      },
+    ),
+    'cashier': cashier, // Pastikan displayName berisi data valid
+  },
+);
+
+                }
+              },
+              icon: const Icon(Icons.credit_card),
+              label: const Text('Cashless Payment'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
 
 
 /// Widget HoverableCard

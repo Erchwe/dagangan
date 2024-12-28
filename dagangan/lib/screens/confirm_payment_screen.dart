@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/currency_formatter.dart';
-import '../models/product_model.dart';
 
 class ConfirmPaymentScreen extends StatefulWidget {
   final Map<String, int> cart;
-  final List<Product> products;
+  final List<dynamic> products;
+  final String paymentMethod;
+  final double totalAmount;
+  final String cashier;
+  final Map<int, int>? cashDenominations;
+  final Map<int, int>? changeDenominations;
 
   const ConfirmPaymentScreen({
     super.key,
     required this.cart,
     required this.products,
+    required this.paymentMethod,
+    required this.totalAmount,
+    required this.cashier,
+    this.cashDenominations,
+    this.changeDenominations,
   });
 
   @override
@@ -18,204 +27,211 @@ class ConfirmPaymentScreen extends StatefulWidget {
 }
 
 class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
-  String cashierName = 'Loading...';
+  bool isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    fetchCashierName();
-  }
+  /// Fungsi untuk menyimpan transaksi ke database
+  Future<void> saveTransaction() async {
+    setState(() {
+      isLoading = true;
+    });
 
-  /// Mengambil Nama Kasir dari Metadata Pengguna
-  Future<void> fetchCashierName() async {
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user != null && user.userMetadata != null) {
-        setState(() {
-          cashierName = user.userMetadata?['display_name'] ?? 'No Display Name';
-        });
-      } else {
-        setState(() {
-          cashierName = 'Guest';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        cashierName = 'Error fetching name';
+      final supabase = Supabase.instance.client;
+
+      await supabase.from('transactions').insert({
+        'total_amount': widget.totalAmount,
+        'payment_method': widget.paymentMethod,
+        'cashier': widget.cashier,
+        'created_at': DateTime.now().toIso8601String(),
       });
-      print('Error fetching cashier name: $e');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Transaction completed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pushReplacementNamed(context, '/success');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save transaction: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  /// Menghitung total harga
-  double getTotalPrice() {
-    double total = 0.0;
-    widget.cart.forEach((productId, quantity) {
-      final product = widget.products.firstWhere((p) => p.id == productId);
-      total += product.price * quantity;
-    });
-    return total;
+  /// Mendapatkan daftar barang berdasarkan cart
+  List<Widget> _buildProductList() {
+    return widget.cart.entries.map((entry) {
+      final product = widget.products.firstWhere((p) => p.id == entry.key);
+      final qty = entry.value;
+      final totalPrice = product.price * qty;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Ikon Barang
+            const Icon(Icons.shopping_cart, size: 40, color: Colors.deepPurple),
+            const SizedBox(width: 12),
+
+            // Nama Barang & Qty
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text('Qty: $qty', style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+
+            // Harga Satuan & Total Harga
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${formatRupiah(product.price)}',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                Text(
+                  '${formatRupiah(totalPrice)}',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
+  /// Menampilkan Cash Denominations & Change jika ada
+  List<Widget> _buildPaymentDetails() {
+    List<Widget> details = [
+      _buildSummaryRow('Grand Total', formatRupiah(widget.totalAmount)),
+      _buildSummaryRow('Payment Method', widget.paymentMethod),
+    ];
+
+    if (widget.cashDenominations != null &&
+        widget.paymentMethod == 'cash') {
+      details.add(_buildSummaryRow('Cash Denominations', ''));
+      details.addAll(
+        widget.cashDenominations!.entries
+            .where((entry) => entry.value > 0)
+            .map((entry) => _buildSummaryRow(
+                '${entry.value} x ${formatRupiah(entry.key.toDouble())}', '')),
+      );
+    }
+
+    if (widget.changeDenominations != null &&
+        widget.paymentMethod == 'cash') {
+      details.add(_buildSummaryRow('Change Denominations', ''));
+      details.addAll(
+        widget.changeDenominations!.entries
+            .where((entry) => entry.value > 0)
+            .map((entry) => _buildSummaryRow(
+                '${entry.value} x ${formatRupiah(entry.key.toDouble())}', '')),
+      );
+    }
+
+    return details;
+  }
+
+  Widget _buildSummaryRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Confirmation'),
-        centerTitle: true, // Judul di tengah
+        title: const Text('Transaction Summary'),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
       ),
-      body: Column(
-        children: [
-          // 🛒 Daftar Produk di Keranjang
-          const SizedBox(height: 16),
-          const Center(
-            child: Text(
-              'Transaction Summary',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section: Purchased Items
+              const Text(
+                'Purchased Items',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              ..._buildProductList(),
+              const SizedBox(height: 24),
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.cart.length,
-              itemBuilder: (context, index) {
-                final productId = widget.cart.keys.elementAt(index);
-                final quantity = widget.cart[productId]!;
-                final product = widget.products.firstWhere((p) => p.id == productId);
+              // Section: Payment Details
+              const Divider(),
+              const Text(
+                'Payment Details',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ..._buildPaymentDetails(),
+              const SizedBox(height: 24),
 
-                return ListTile(
-                  leading: const Icon(
-                    Icons.shopping_bag,
-                    color: Colors.deepPurple,
-                    size: 30,
-                  ),
-                  title: Text(
-                    product.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              // Button Confirm Payment
+              Center(
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : saveTransaction,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  subtitle: Text(
-                    'Qty: $quantity',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  trailing: Text(
-                    formatRupiah(product.price * quantity),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                );
-              },
-            ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : const Text(
+                          'Confirm Payment',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ),
-
-          // 📊 Ringkasan Total Harga + Nama Kasir
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: Colors.grey.shade300)),
-              color: Colors.grey.shade100,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Grand Total:',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      formatRupiah(getTotalPrice()),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Cashier: $cashierName',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 🔘 Tombol Cash Payment & Cashless Payment
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Cash Payment Selected')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: const Icon(Icons.money, color: Colors.white),
-                    label: const Text(
-                      'Cash Payment',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Cashless Payment Selected')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: const Icon(Icons.credit_card, color: Colors.white),
-                    label: const Text(
-                      'Cashless Payment',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
