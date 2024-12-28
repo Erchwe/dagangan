@@ -148,15 +148,6 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
           }
         }
       }
-
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Transaction completed successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
       Navigator.pushReplacementNamed(context, '/success');
     } catch (e) {
       print('Failed to save transaction: $e');
