@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/transaction_details_model.dart';
 import '../services/transaction_service.dart';
-import '../models/transaction_model.dart';
 import '../utils/currency_formatter.dart';
 
 class SalesReportScreen extends StatefulWidget {
@@ -12,37 +12,21 @@ class SalesReportScreen extends StatefulWidget {
 
 class _SalesReportScreenState extends State<SalesReportScreen> {
   final TransactionService _transactionService = TransactionService();
-  List<TransactionModel> transactions = [];
+  List<TransactionDetail> transactionDetails = [];
   bool isLoading = true;
   String filterQuery = '';
-  bool isAscending = true;
-  String sortBy = 'createdAt';
 
   @override
   void initState() {
     super.initState();
-    fetchTransactions();
+    fetchTransactionDetails();
   }
 
-  Future<void> fetchTransactions() async {
-    final data = await _transactionService.fetchTransactions();
+  Future<void> fetchTransactionDetails() async {
+    final data = await _transactionService.fetchTransactionDetails();
     setState(() {
-      transactions = data;
+      transactionDetails = data;
       isLoading = false;
-    });
-  }
-
-  void sortTransactions(String column) {
-    setState(() {
-      sortBy = column;
-      isAscending = !isAscending;
-
-      transactions.sort((a, b) {
-        final dynamic valueA = column == 'totalAmount' ? a.totalAmount : a.createdAt;
-        final dynamic valueB = column == 'totalAmount' ? b.totalAmount : b.createdAt;
-
-        return isAscending ? valueA.compareTo(valueB) : valueB.compareTo(valueA);
-      });
     });
   }
 
@@ -74,30 +58,33 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                   ),
                 ),
                 Expanded(
-                  child: DataTable(
-                    sortAscending: isAscending,
-                    sortColumnIndex: sortBy == 'createdAt' ? 0 : 1,
-                    columns: [
-                      DataColumn(
-                        label: const Text('Date'),
-                        onSort: (_, __) => sortTransactions('createdAt'),
-                      ),
-                      DataColumn(
-                        label: const Text('Total Amount'),
-                        onSort: (_, __) => sortTransactions('totalAmount'),
-                      ),
-                      DataColumn(label: const Text('Payment Method')),
-                    ],
-                    rows: transactions
-                        .where((transaction) => transaction.paymentMethod.toLowerCase().contains(filterQuery))
-                        .map((transaction) => DataRow(
-                              cells: [
-                                DataCell(Text(transaction.createdAt.toLocal().toString())),
-                                DataCell(Text(formatRupiah(transaction.totalAmount))),
-                                DataCell(Text(transaction.paymentMethod)),
-                              ],
-                            ))
-                        .toList(),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+  columns: const [
+    DataColumn(label: Text('Date')),
+    DataColumn(label: Text('Transaction ID')),
+    DataColumn(label: Text('Product Name')), // Ubah kolom menjadi nama produk
+    DataColumn(label: Text('Quantity')),
+    DataColumn(label: Text('Price')),
+    DataColumn(label: Text('Subtotal')),
+    DataColumn(label: Text('Payment Method')),
+    DataColumn(label: Text('Cashier')),
+  ],
+  rows: transactionDetails.map((detail) {
+    return DataRow(cells: [
+      DataCell(Text(detail.transaction.createdAt.toLocal().toString())),
+      DataCell(Text(detail.transactionId)),
+      DataCell(Text(detail.productName)), // Tampilkan nama produk
+      DataCell(Text(detail.quantity.toString())),
+      DataCell(Text(formatRupiah(detail.price))),
+      DataCell(Text(formatRupiah(detail.subtotal))),
+      DataCell(Text(detail.transaction.paymentMethod)),
+      DataCell(Text(detail.transaction.cashier)),
+    ]);
+  }).toList(),
+),
+
                   ),
                 ),
               ],
