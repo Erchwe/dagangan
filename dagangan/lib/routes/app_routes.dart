@@ -7,6 +7,8 @@ import '../screens/transaction_screen.dart';
 import '../screens/confirm_payment_screen.dart';
 import '../screens/cash_input_screen.dart';
 import '../screens/success_screen.dart';
+import '../screens/manager_dashboard_screen.dart';
+import '../screens/sales_report_screen.dart';
 
 import '../models/product_model.dart';
 
@@ -15,6 +17,7 @@ import '../models/product_model.dart';
 final Map<String, WidgetBuilder> appRoutes = {
   '/login': (context) => const LoginScreen(),
   '/home': (context) => const HomeScreen(),
+  '/manager-dashboard': (context) => const ManagerDashboardScreen(),
   '/categories': (context) => const CategoryScreen(),
   '/products': (context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>;
@@ -56,4 +59,6 @@ final Map<String, WidgetBuilder> appRoutes = {
     );
   },
   '/success': (context) => const SuccessScreen(),
+  '/sales-reports': (context) => const SalesReportScreen(),
+
 };

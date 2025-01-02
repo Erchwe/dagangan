@@ -3,14 +3,14 @@ import 'package:dagangan/core/auth_services.dart';
 import 'package:dagangan/screens/login_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ManagerDashboardScreen extends StatefulWidget {
+  const ManagerDashboardScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ManagerDashboardScreen> createState() => _ManagerDashboardScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   String displayName = 'Loading...';
 
   @override
@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Manager Dashboard'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              'On Shift: $displayName',
+              'Welcome, Manager: $displayName',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -89,7 +89,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
           Expanded(
             child: GridView.builder(
@@ -102,9 +101,9 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: 4,
               itemBuilder: (context, index) {
                 final menuItems = [
-                  {'icon': Icons.shopping_bag, 'title': 'Manage Products', 'route': '/categories'},
+                  {'icon': Icons.analytics, 'title': 'Sales Reports', 'route': '/sales-reports'},
+                  {'icon': Icons.people, 'title': 'Manage Staff', 'route': '/manage-staff'},
                   {'icon': Icons.settings, 'title': 'Settings', 'route': '/settings'},
-                  {'icon': Icons.shopping_cart, 'title': 'Input Transaction', 'route': '/transaction'},
                   {'icon': Icons.support_agent, 'title': 'Support', 'route': '/support'},
                 ];
 
@@ -124,69 +123,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, String route) {
-    return HoverableCard(
-      icon: icon,
-      title: title,
-      onTap: () {
-        Navigator.pushNamed(context, route);
-      },
-    );
-  }
-}
-
-class HoverableCard extends StatefulWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const HoverableCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  State<HoverableCard> createState() => _HoverableCardState();
-}
-
-class _HoverableCardState extends State<HoverableCard> {
-  bool _isHovered = false;
-  bool _isClicked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isClicked = true),
-        onTapUp: (_) {
-          setState(() => _isClicked = false);
-          widget.onTap();
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(context, route);
         },
-        onTapCancel: () => setState(() => _isClicked = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: _isClicked
-                ? Colors.deepPurple[300]
-                : _isHovered
-                    ? Colors.deepPurple[100]
-                    : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, size: 40, color: Colors.deepPurple),
-              const SizedBox(height: 10),
-              Text(
-                widget.title,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: Colors.deepPurple),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );

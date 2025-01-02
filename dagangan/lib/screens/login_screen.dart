@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dagangan/core/auth_services.dart';
 import 'package:dagangan/screens/home_screen.dart';
+import 'package:dagangan/screens/manager_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _loadRememberedUser();
   }
 
-  /// 🔑 **Load Remembered User**
   Future<void> _loadRememberedUser() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('remembered_email');
@@ -36,7 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// 🔒 **Login Logic**
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -47,6 +47,20 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text.trim(),
       );
 
+      final user = Supabase.instance.client.auth.currentUser;
+
+      if (user?.email == 'manager@gmail.com') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ManagerDashboardScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+
       if (_rememberMe) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('remembered_email', _emailController.text.trim());
@@ -56,11 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.remove('remembered_email');
         await prefs.remove('remember_me');
       }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

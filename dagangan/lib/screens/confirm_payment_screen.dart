@@ -60,7 +60,23 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
         'created_at': DateTime.now().toIso8601String(),
       }).select().single();
 
+      final transactionId = response['id'];
       print('Transaction Saved: $response');
+
+      // Simpan detail transaksi ke tabel 'transaction_details'
+      for (var entry in widget.cart.entries) {
+        final productId = entry.key;
+        final quantity = entry.value;
+        final product = widget.products.firstWhere((p) => p.id == productId);
+
+        await supabase.from('transaction_details').insert({
+          'transaction_id': transactionId,
+          'product_id': productId,
+          'quantity': quantity,
+          'price': product.price,
+          'subtotal': product.price * quantity,
+        });
+      }
 
       // **Update stok produk**
       for (var entry in widget.cart.entries) {
@@ -88,14 +104,12 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
       }
 
       // **Perbarui cash jika metode pembayaran cash**
-      // Update Cash Denominations
       if (widget.paymentMethod == 'cash' && widget.cashDenominations != null) {
         for (var entry in widget.cashDenominations!.entries) {
-          final denomination = entry.key; // Pecahan uang (100000, 50000, dll.)
-          final quantity = entry.value; // Jumlah lembar uang
+          final denomination = entry.key;
+          final quantity = entry.value;
 
           if (quantity > 0) {
-            // Periksa stok saat ini
             final existingCash = await supabase
                 .from('cash')
                 .select('quantity')
@@ -106,7 +120,6 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
               final currentQuantity = existingCash['quantity'] as int;
               final updatedQuantity = currentQuantity + quantity;
 
-              // Update jumlah stok uang tunai
               await supabase.from('cash').update({
                 'quantity': updatedQuantity,
               }).eq('denomination', denomination);
@@ -118,11 +131,10 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
       // Kurangi stok untuk kembalian
       if (widget.paymentMethod == 'cash' && widget.changeDenominations != null) {
         for (var entry in widget.changeDenominations!.entries) {
-          final denomination = entry.key; // Pecahan uang
-          final quantity = entry.value; // Jumlah uang untuk kembalian
+          final denomination = entry.key;
+          final quantity = entry.value;
 
           if (quantity > 0) {
-            // Periksa stok saat ini
             final existingCash = await supabase
                 .from('cash')
                 .select('quantity')
@@ -132,11 +144,9 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
             if (existingCash != null) {
               final currentQuantity = existingCash['quantity'] as int;
 
-              // Pastikan stok cukup untuk dikurangi
               if (currentQuantity >= quantity) {
                 final updatedQuantity = currentQuantity - quantity;
 
-                // Update jumlah stok uang tunai untuk kembalian
                 await supabase.from('cash').update({
                   'quantity': updatedQuantity,
                 }).eq('denomination', denomination);
@@ -148,6 +158,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
           }
         }
       }
+
       Navigator.pushReplacementNamed(context, '/success');
     } catch (e) {
       print('Failed to save transaction: $e');
@@ -163,7 +174,6 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
       });
     }
   }
-
 
   /// Mendapatkan daftar barang berdasarkan cart
   List<Widget> _buildProductList() {
@@ -217,7 +227,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
     }).toList();
   }
 
-  /// Menampilkan Cash Denominations & Change jika ada
+  /// Cash denom (kl ada)
   List<Widget> _buildPaymentDetails() {
     List<Widget> details = [
       _buildSummaryRow('Grand Total', formatRupiah(widget.totalAmount)),
