@@ -47,11 +47,23 @@ class _ProductScreenState extends State<ProductScreen> {
 
   /// Menghapus produk dengan konfirmasi
   void deleteProduct(Product product) async {
+    final isReferenced = await _productService.isProductInTransactionDetails(product.id);
+    
+    if (isReferenced) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Product "${product.name}" cannot be deleted as it is referenced in transactions.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: Text('Are you sure you want to delete "${product.name}"?'),
+        title: const Text('Delete Confirmation'),
+        content: Text('Are you sure you want to delete the product "${product.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -69,10 +81,11 @@ class _ProductScreenState extends State<ProductScreen> {
       await _productService.deleteProduct(product.id);
       loadProducts();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product deleted successfully')),
+        const SnackBar(content: Text('Product successfully deleted.')),
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -41,19 +41,8 @@ class _CashInputScreenState extends State<CashInputScreen> {
     100: 0
   };
 
-  final Map<int, int> cashStock = {
-    100000: 10,
-    50000: 20,
-    20000: 15,
-    10000: 30,
-    5000: 50,
-    2000: 100,
-    1000: 200,
-    500: 300,
-    200: 500,
-    100: 1000,
-  };
-
+  Map<int, int> cashStock = {};
+  final Map<int, TextEditingController> controllers = {};
   double totalAmount = 0.0;
   double grandTotal = 0.0;
   Map<int, int> changeDenominations = {};
@@ -63,8 +52,39 @@ class _CashInputScreenState extends State<CashInputScreen> {
   void initState() {
     super.initState();
     fetchDisplayName();
+    fetchCashStock();
     calculateGrandTotal();
+    cashDenominations.forEach((key, value) {
+      controllers[key] = TextEditingController(text: value.toString());
+    });
   }
+
+  @override
+  void dispose() {
+    controllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  Future<void> fetchCashStock() async {
+    try {
+      final response = await Supabase.instance.client.from('cash').select('*').execute();
+
+      if (response.status == 200 && response.data != null) {
+        setState(() {
+          cashStock = {
+            for (var cash in response.data) cash['denomination'] as int: cash['quantity'] as int
+          };
+        });
+        print('Fetched Cash Stock: $cashStock'); // Debug
+      } else {
+        print('Error fetching cash stock: ${response.status}, ${response.data}');
+      }
+    } catch (e) {
+      print('Error fetching cash stock: $e');
+    }
+  }
+
+
 
   Future<void> fetchDisplayName() async {
     try {
@@ -117,8 +137,10 @@ class _CashInputScreenState extends State<CashInputScreen> {
         if (count > 0) {
           int available = cashStock[denomination] ?? 0;
           int used = count > available ? available : count;
-          changeMap[denomination] = used;
-          change -= used * denomination;
+          if (used > 0) {
+            changeMap[denomination] = used;
+            change -= used * denomination;
+          }
         }
       }
     }
@@ -126,12 +148,17 @@ class _CashInputScreenState extends State<CashInputScreen> {
     setState(() {
       changeDenominations = changeMap;
     });
+
+    print('Remaining Change: $change');
+    print('Change Map: $changeMap');
   }
+
 
   /// Menambah jumlah lembaran untuk denominasi tertentu
   void incrementDenomination(int denomination) {
     setState(() {
       cashDenominations[denomination] = cashDenominations[denomination]! + 1;
+      controllers[denomination]?.text = cashDenominations[denomination].toString();
       calculateTotalCash();
     });
   }
@@ -141,12 +168,20 @@ class _CashInputScreenState extends State<CashInputScreen> {
     if (cashDenominations[denomination]! > 0) {
       setState(() {
         cashDenominations[denomination] = cashDenominations[denomination]! - 1;
+        controllers[denomination]?.text = cashDenominations[denomination].toString();
         calculateTotalCash();
       });
     }
   }
 
- /// Validasi uang tunai
+  void updateDenominationFromInput(int denomination, String value) {
+    setState(() {
+      cashDenominations[denomination] = int.tryParse(value) ?? 0;
+      calculateTotalCash();
+    });
+  }
+
+  /// Validasi uang tunai
   void validateCash() {
     if (totalAmount < grandTotal) {
       showDialog(
@@ -223,8 +258,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     print('Navigating to ConfirmPayment with Total Amount: $grandTotal, Cash Given: $totalAmount, Change: $change');
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -263,6 +296,15 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            title: TextField(
+                              controller: controllers[denomination],
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Enter count',
+                              ),
+                              onChanged: (value) => updateDenominationFromInput(denomination, value),
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -270,7 +312,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                   icon: const Icon(Icons.remove, color: Colors.red),
                                   onPressed: () => decrementDenomination(denomination),
                                 ),
-                                Text('$count'),
                                 IconButton(
                                   icon: const Icon(Icons.add, color: Colors.green),
                                   onPressed: () => incrementDenomination(denomination),
@@ -311,32 +352,35 @@ class _CashInputScreenState extends State<CashInputScreen> {
                     ),
                   ),
                   Expanded(
-                    child: ListView(
-                      children: changeDenominations.entries.map((entry) {
-                        return ListTile(
-                          title: Text('${entry.value} x ${formatRupiah(entry.key.toDouble())}'),
-                        );
-                      }).toList(),
-                    ),
+            child: changeDenominations.isEmpty
+                ? Center(child: Text('No change to display'))
+                : ListView(
+                    children: changeDenominations.entries.map((entry) {
+                      return ListTile(
+                        title: Text('${entry.value} x ${formatRupiah(entry.key.toDouble())}'),
+                      );
+                    }).toList(),
                   ),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: validateCash,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Payment Summary'),
-                    ),
-                  ),
-                ],
+          ),
+        Center(
+          child: ElevatedButton(
+            onPressed: validateCash,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
+            child: const Text('Payment Summary'),
           ),
+        ),
+      ],
+    ),
+  ),
+),
+
         ],
       ),
     );
