@@ -33,7 +33,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Transaksi Berhasil!',
+                  'Transaction Success!',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -61,7 +61,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Mengalihkan ke Dashboard...',
+                  'Redirecting to Dashboard...',
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],

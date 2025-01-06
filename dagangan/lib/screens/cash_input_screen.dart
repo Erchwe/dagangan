@@ -84,8 +84,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     }
   }
 
-
-
   Future<void> fetchDisplayName() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
@@ -102,7 +100,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     }
   }
 
-  /// Menghitung total pembayaran
   void calculateGrandTotal() {
     double total = 0.0;
     widget.cart.forEach((productId, quantity) {
@@ -114,7 +111,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     });
   }
 
-  /// Menghitung total uang tunai yang dimasukkan
   void calculateTotalCash() {
     double total = 0.0;
     cashDenominations.forEach((denomination, count) {
@@ -126,7 +122,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     });
   }
 
-  /// Menghitung kembalian berdasarkan stok uang
   void calculateChange() {
     double change = totalAmount - grandTotal;
     Map<int, int> changeMap = {};
@@ -153,8 +148,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     print('Change Map: $changeMap');
   }
 
-
-  /// Menambah jumlah lembaran untuk denominasi tertentu
   void incrementDenomination(int denomination) {
     setState(() {
       cashDenominations[denomination] = cashDenominations[denomination]! + 1;
@@ -163,7 +156,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
     });
   }
 
-  /// Mengurangi jumlah lembaran untuk denominasi tertentu
   void decrementDenomination(int denomination) {
     if (cashDenominations[denomination]! > 0) {
       setState(() {
@@ -181,12 +173,11 @@ class _CashInputScreenState extends State<CashInputScreen> {
     });
   }
 
-  /// Validasi uang tunai
   void validateCash() {
     if (totalAmount < grandTotal) {
       showDialog(
         context: context,
-        barrierDismissible: false, // Dialog tidak bisa ditutup dengan klik di luar
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Insufficient Cash'),
@@ -207,20 +198,18 @@ class _CashInputScreenState extends State<CashInputScreen> {
 
     double change = totalAmount - grandTotal;
 
-    // Data yang akan dikirim ke halaman konfirmasi
     final Map<String, dynamic> paymentArguments = {
       'cart': widget.cart,
       'products': widget.products,
       'paymentMethod': 'cash',
       'cashier': displayName,
-      'totalAmount': grandTotal, // Pastikan grandTotal dikirim untuk total transaksi
-      'cashGiven': totalAmount, // Jumlah uang yang diberikan oleh pengguna
-      'change': change, // Selisih kembalian
+      'totalAmount': grandTotal,
+      'cashGiven': totalAmount,
+      'change': change,
       'cashDenominations': cashDenominations.map((key, value) => MapEntry(key, value)),
       'changeDenominations': changeDenominations.map((key, value) => MapEntry(key, value)),
     };
 
-    // Jika pembayaran pas (tanpa kembalian)
     if (change == 0) {
       showDialog(
         context: context,
@@ -248,7 +237,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
       return;
     }
 
-    // Jika pembayaran lebih (dengan kembalian)
     Navigator.pushNamed(
       context,
       '/confirm-payment',
@@ -260,11 +248,12 @@ class _CashInputScreenState extends State<CashInputScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Cash Payment Input')),
       body: Row(
         children: [
-          // Bagian Kiri: Input Uang
           Expanded(
             flex: 1,
             child: Padding(
@@ -284,41 +273,147 @@ class _CashInputScreenState extends State<CashInputScreen> {
                     child: ListView(
                       children: cashDenominations.entries.map((entry) {
                         final denomination = entry.key;
-                        final count = entry.value;
                         return Card(
                           elevation: 2,
                           margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            leading: Text(
-                              formatRupiah(denomination.toDouble()),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            title: TextField(
-                              controller: controllers[denomination],
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: 'Enter count',
-                              ),
-                              onChanged: (value) => updateDenominationFromInput(denomination, value),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove, color: Colors.red),
-                                  onPressed: () => decrementDenomination(denomination),
+                          child: screenWidth < 600
+                            ? Column(
+                                children: [
+                                  Text(
+                                    formatRupiah(denomination.toDouble()),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.remove, color: Colors.red),
+                                        onPressed: () => decrementDenomination(denomination),
+                                      ),
+                                      Expanded(
+                                            flex: 3,
+                                            child: TextField(
+                                              controller: controllers[denomination],
+                                              keyboardType: TextInputType.number,
+                                              textAlign: TextAlign.center,
+                                              decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                isDense: true, // Mengurangi tinggi TextField
+                                                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                              ),
+                                              onChanged: (value) =>
+                                                  updateDenominationFromInput(denomination, value),
+                                            ),
+                                          ),
+                                      IconButton(
+                                        icon: const Icon(Icons.add, color: Colors.green),
+                                        onPressed: () => incrementDenomination(denomination),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              )
+                            : ListTile(
+                                contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                                title: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    if (constraints.maxWidth > 600) {
+                                      // Horizontal Layout untuk Layar Lebar
+                                      return Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text(
+                                              formatRupiah(denomination.toDouble()),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 3,
+                                            child: TextField(
+                                              controller: controllers[denomination],
+                                              keyboardType: TextInputType.number,
+                                              textAlign: TextAlign.center,
+                                              decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                isDense: true, // Mengurangi tinggi TextField
+                                                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                              ),
+                                              onChanged: (value) =>
+                                                  updateDenominationFromInput(denomination, value),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.remove, color: Colors.red),
+                                                  onPressed: () => decrementDenomination(denomination),
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.add, color: Colors.green),
+                                                  onPressed: () => incrementDenomination(denomination),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    } else {
+                                      // Vertical Layout untuk Layar Sempit
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            formatRupiah(denomination.toDouble()),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.remove, color: Colors.red),
+                                                onPressed: () => decrementDenomination(denomination),
+                                              ),
+                                              Flexible(
+                                                flex: 2,
+                                                child: TextField(
+                                                  controller: controllers[denomination],
+                                                  keyboardType: TextInputType.number,
+                                                  textAlign: TextAlign.center,
+                                                  decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    isDense: true,
+                                                    contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                                  ),
+                                                  onChanged: (value) =>
+                                                      updateDenominationFromInput(denomination, value),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.add, color: Colors.green),
+                                                onPressed: () => incrementDenomination(denomination),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  },
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.add, color: Colors.green),
-                                  onPressed: () => incrementDenomination(denomination),
-                                ),
-                              ],
-                            ),
-                          ),
+                              )
                         );
                       }).toList(),
                     ),
@@ -328,7 +423,6 @@ class _CashInputScreenState extends State<CashInputScreen> {
             ),
           ),
           VerticalDivider(color: Colors.grey[300], thickness: 1),
-          // Bagian Kanan: Payment Total dan Kembalian
           Expanded(
             flex: 1,
             child: Padding(
@@ -352,35 +446,34 @@ class _CashInputScreenState extends State<CashInputScreen> {
                     ),
                   ),
                   Expanded(
-            child: changeDenominations.isEmpty
-                ? Center(child: Text('No change to display'))
-                : ListView(
-                    children: changeDenominations.entries.map((entry) {
-                      return ListTile(
-                        title: Text('${entry.value} x ${formatRupiah(entry.key.toDouble())}'),
-                      );
-                    }).toList(),
+                    child: changeDenominations.isEmpty
+                        ? const Center(child: Text('No change to display'))
+                        : ListView(
+                            children: changeDenominations.entries.map((entry) {
+                              return ListTile(
+                                title: Text('${entry.value} x ${formatRupiah(entry.key.toDouble())}'),
+                              );
+                            }).toList(),
+                          ),
                   ),
-          ),
-        Center(
-          child: ElevatedButton(
-            onPressed: validateCash,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: validateCash,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Payment Summary'),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: const Text('Payment Summary'),
           ),
-        ),
-      ],
-    ),
-  ),
-),
-
         ],
       ),
     );

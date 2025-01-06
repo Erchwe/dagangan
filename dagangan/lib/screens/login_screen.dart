@@ -170,19 +170,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             const Text('Remember Me'),
                           ],
                         ),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Forgot Password? Coming soon!'),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(color: Colors.blueAccent),
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 24),

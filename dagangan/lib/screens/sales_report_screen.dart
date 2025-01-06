@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/transaction_details_model.dart';
 import '../services/transaction_service.dart';
 import '../utils/currency_formatter.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
@@ -37,40 +42,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     });
   }
 
-  void onSort(int columnIndex, bool ascending) {
-    setState(() {
-      sortColumnIndex = columnIndex;
-      isAscending = ascending;
-
-      if (columnIndex == 0) {
-        filteredDetails.sort((a, b) =>
-            compare(ascending, a.transaction.createdAt, b.transaction.createdAt));
-      } else if (columnIndex == 1) {
-        filteredDetails.sort(
-            (a, b) => compare(ascending, a.transactionId, b.transactionId));
-      } else if (columnIndex == 2) {
-        filteredDetails.sort(
-            (a, b) => compare(ascending, a.productName, b.productName));
-      } else if (columnIndex == 3) {
-        filteredDetails.sort(
-            (a, b) => compare(ascending, a.quantity, b.quantity));
-      } else if (columnIndex == 4) {
-        filteredDetails.sort((a, b) => compare(ascending, a.price, b.price));
-      } else if (columnIndex == 5) {
-        filteredDetails.sort(
-            (a, b) => compare(ascending, a.subtotal, b.subtotal));
-      }
-    });
-  }
-
-  int compare<T extends Comparable>(bool ascending, T value1, T value2) {
-    if (ascending) {
-      return value1.compareTo(value2);
-    } else {
-      return value2.compareTo(value1);
-    }
-  }
-
   void applyFilters() {
     setState(() {
       filteredDetails = transactionDetails.where((detail) {
@@ -89,45 +60,197 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     });
   }
 
+//   Future<void> exportReportToPDF(
+//     BuildContext context, List<TransactionDetail> details) async {
+//   final pdf = pw.Document();
+
+//   pdf.addPage(
+//     pw.Page(
+//       pageFormat: PdfPageFormat.a4,
+//       build: (pw.Context context) {
+//         return pw.Column(
+//           crossAxisAlignment: pw.CrossAxisAlignment.start,
+//           children: [
+//             pw.Text(
+//               'Sales Report',
+//               style: pw.TextStyle(
+//                 fontSize: 24,
+//                 fontWeight: pw.FontWeight.bold,
+//               ),
+//             ),
+//             pw.SizedBox(height: 20),
+//             pw.Table(
+//               border: pw.TableBorder.all(),
+//               columnWidths: {
+//                 0: pw.FlexColumnWidth(3), // Lebih lebar untuk kolom tanggal
+//                 1: pw.FlexColumnWidth(2),
+//                 2: pw.FlexColumnWidth(3),
+//                 3: pw.FlexColumnWidth(1),
+//                 4: pw.FlexColumnWidth(2),
+//                 5: pw.FlexColumnWidth(2),
+//               },
+//               children: [
+//                 pw.TableRow(
+//                   decoration: pw.BoxDecoration(
+//                     color: PdfColors.grey300,
+//                   ),
+//                   children: [
+//                     pw.Text('Date', textAlign: pw.TextAlign.center),
+//                     pw.Text('Transaction ID', textAlign: pw.TextAlign.center),
+//                     pw.Text('Product Name', textAlign: pw.TextAlign.center),
+//                     pw.Text('Qty', textAlign: pw.TextAlign.center),
+//                     pw.Text('Price', textAlign: pw.TextAlign.center),
+//                     pw.Text('Subtotal', textAlign: pw.TextAlign.center),
+//                   ].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: e)).toList(),
+//                 ),
+//                 ...details.map((detail) {
+//                   return pw.TableRow(
+//                     children: [
+//                       pw.Text(
+//                         detail.transaction.createdAt.toString(),
+//                         textAlign: pw.TextAlign.center,
+//                       ),
+//                       pw.Text(
+//                         detail.transactionId,
+//                         textAlign: pw.TextAlign.center,
+//                       ),
+//                       pw.Text(
+//                         detail.productName,
+//                         textAlign: pw.TextAlign.center,
+//                       ),
+//                       pw.Text(
+//                         detail.quantity.toString(),
+//                         textAlign: pw.TextAlign.center,
+//                       ),
+//                       pw.Text(
+//                         formatRupiah(detail.price),
+//                         textAlign: pw.TextAlign.center,
+//                       ),
+//                       pw.Text(
+//                         formatRupiah(detail.subtotal),
+//                         textAlign: pw.TextAlign.center,
+//                       ),
+//                     ].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: e)).toList(),
+//                   );
+//                 }).toList(),
+//               ],
+//             ),
+//           ],
+//         );
+//       },
+//     ),
+//   );
+
+//   // Menampilkan dialog untuk mencetak atau menyimpan PDF
+//   await Printing.layoutPdf(
+//     onLayout: (PdfPageFormat format) async => pdf.save(),
+//   );
+// }
+
+Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
+  final pdf = pw.Document();
+
+  // Buat halaman PDF
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'Sales Report',
+              style: pw.TextStyle(
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Table(
+              border: pw.TableBorder.all(),
+              columnWidths: {
+                0: pw.FlexColumnWidth(2),
+                1: pw.FlexColumnWidth(1),
+                2: pw.FlexColumnWidth(1),
+                3: pw.FlexColumnWidth(1),
+                4: pw.FlexColumnWidth(1),
+                5: pw.FlexColumnWidth(1),
+                6: pw.FlexColumnWidth(1),
+                // 5: pw.FlexColumnWidth(2),
+              },
+              children: [
+                pw.TableRow(
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey300,
+                  ),
+                  children: [
+                    pw.Text('Date'),
+                    pw.Text('Transaction ID'),
+                    pw.Text('Product Name'),
+                    pw.Text('Qty'),
+                    // pw.Text('Price'),
+                    pw.Text('Payment Method'),
+                    // pw.Text('Subtotal'),
+                    pw.Text('Cashier'),
+                  ].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: e)).toList(),
+                ),
+                ...details.map((detail) {
+                  return pw.TableRow(
+                    children: [
+                      pw.Text(detail.transaction.createdAt.toString()),
+                      pw.Text(detail.transactionId),
+                      pw.Text(detail.productName),
+                      pw.Text(detail.quantity.toString()),
+                      // pw.Text(detail.price.toString()),
+                      pw.Text(detail.transaction.paymentMethod),
+                      // pw.Text(detail.subtotal.toString()),
+                      pw.Text(detail.transaction.cashier),
+                    ].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: e)).toList(),
+                  );
+                }).toList(),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  // Simpan PDF ke perangkat
+  try {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/sales_report.pdf');
+    await file.writeAsBytes(await pdf.save());
+    print('File berhasil disimpan di ${file.path}');
+  } catch (e) {
+    print('Error menyimpan file PDF: $e');
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sales Report'),
+        centerTitle: true,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                // Filter Section
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Wrap(
-                    spacing: 8.0, 
-                    runSpacing: 8.0, 
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
                     children: [
-                      SizedBox(
-                        width: 200, 
-                        child: DropdownButtonFormField<String>(
-                          isExpanded: true, 
-                          decoration: const InputDecoration(
-                            labelText: 'Filter by Cashier',
-                            border: OutlineInputBorder(),
-                          ),
+                      Expanded(
+                        child: buildDropdown(
+                          label: "Cashier",
                           value: selectedCashier,
-                          items: [
-                                const DropdownMenuItem(
-                                  value: 'No Filter',
-                                  child: Text('No Filter'),
-                                )
-                              ] +
-                              transactionDetails
-                                  .map((detail) => detail.transaction.cashier)
-                                  .toSet()
-                                  .map((cashier) => DropdownMenuItem(
-                                        value: cashier,
-                                        child: Text(cashier),
-                                      ))
-                                  .toList(),
+                          items: transactionDetails
+                              .map((e) => e.transaction.cashier)
+                              .toSet()
+                              .toList(),
                           onChanged: (value) {
                             setState(() {
                               selectedCashier = value;
@@ -136,29 +259,15 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           },
                         ),
                       ),
-                      SizedBox(
-                        width: 200, 
-                        child: DropdownButtonFormField<String>(
-                          isExpanded: true, 
-                          decoration: const InputDecoration(
-                            labelText: 'Filter by Payment Method',
-                            border: OutlineInputBorder(),
-                          ),
+                      const SizedBox(width: 8), // Spasi antar dropdown
+                      Expanded(
+                        child: buildDropdown(
+                          label: "Payment Method",
                           value: selectedPaymentMethod,
-                          items: [
-                                const DropdownMenuItem(
-                                  value: 'No Filter',
-                                  child: Text('No Filter'),
-                                )
-                              ] +
-                              transactionDetails
-                                  .map((detail) => detail.transaction.paymentMethod)
-                                  .toSet()
-                                  .map((method) => DropdownMenuItem(
-                                        value: method,
-                                        child: Text(method),
-                                      ))
-                                  .toList(),
+                          items: transactionDetails
+                              .map((e) => e.transaction.paymentMethod)
+                              .toSet()
+                              .toList(),
                           onChanged: (value) {
                             setState(() {
                               selectedPaymentMethod = value;
@@ -167,29 +276,15 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           },
                         ),
                       ),
-                      SizedBox(
-                        width: 200, 
-                        child: DropdownButtonFormField<String>(
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Filter by Product',
-                            border: OutlineInputBorder(),
-                          ),
+                      const SizedBox(width: 8), // Spasi antar dropdown
+                      Expanded(
+                        child: buildDropdown(
+                          label: "Product",
                           value: selectedProduct,
-                          items: [
-                                const DropdownMenuItem(
-                                  value: 'No Filter',
-                                  child: Text('No Filter'),
-                                )
-                              ] +
-                              transactionDetails
-                                  .map((detail) => detail.productName)
-                                  .toSet()
-                                  .map((product) => DropdownMenuItem(
-                                        value: product,
-                                        child: Text(product),
-                                      ))
-                                  .toList(),
+                          items: transactionDetails
+                              .map((e) => e.productName)
+                              .toSet()
+                              .toList(),
                           onChanged: (value) {
                             setState(() {
                               selectedProduct = value;
@@ -201,6 +296,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     ],
                   ),
                 ),
+                // Data Table Section
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -210,42 +306,29 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       columns: [
                         DataColumn(
                           label: const Text('Date'),
-                          onSort: (index, ascending) =>
-                              onSort(index, ascending),
+                          onSort: (index, ascending) {
+                            setState(() {
+                              sortColumnIndex = index;
+                              isAscending = ascending;
+                              filteredDetails.sort((a, b) => compare(
+                                  ascending,
+                                  a.transaction.createdAt,
+                                  b.transaction.createdAt));
+                            });
+                          },
                         ),
-                        DataColumn(
-                          label: const Text('Transaction ID'),
-                          onSort: (index, ascending) =>
-                              onSort(index, ascending),
-                        ),
-                        DataColumn(
-                          label: const Text('Product Name'),
-                          onSort: (index, ascending) =>
-                              onSort(index, ascending),
-                        ),
-                        DataColumn(
-                          label: const Text('Quantity'),
-                          onSort: (index, ascending) =>
-                              onSort(index, ascending),
-                        ),
-                        DataColumn(
-                          label: const Text('Price'),
-                          onSort: (index, ascending) =>
-                              onSort(index, ascending),
-                        ),
-                        DataColumn(
-                          label: const Text('Subtotal'),
-                          onSort: (index, ascending) =>
-                              onSort(index, ascending),
-                        ),
-                        DataColumn(label: const Text('Payment Method')),
-                        DataColumn(label: const Text('Cashier')),
+                        const DataColumn(label: Text('Transaction ID')),
+                        const DataColumn(label: Text('Product Name')),
+                        const DataColumn(label: Text('Quantity')),
+                        const DataColumn(label: Text('Price')),
+                        const DataColumn(label: Text('Subtotal')),
+                        const DataColumn(label: Text('Payment Method')),
+                        const DataColumn(label: Text('Cashier')),
                       ],
                       rows: filteredDetails.map((detail) {
                         return DataRow(cells: [
-                          DataCell(Text(detail.transaction.createdAt
-                              .toLocal()
-                              .toString())),
+                          DataCell(Text(
+                              detail.transaction.createdAt.toString())),
                           DataCell(Text(detail.transactionId)),
                           DataCell(Text(detail.productName)),
                           DataCell(Text(detail.quantity.toString())),
@@ -258,8 +341,67 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     ),
                   ),
                 ),
+                // Export Button
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await saveReportAsPDF(filteredDetails);
+                      // await exportReportToPDF(context, filteredDetails);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('PDF berhasil disimpan!')),
+                      );
+                    },
+                    icon: const Icon(Icons.file_download),
+                    label: const Text("Export Report"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
     );
   }
+
+  Widget buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return SizedBox(
+      width: 200,
+      child: DropdownButtonFormField<String>(
+        value: value,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        items: [
+          const DropdownMenuItem(
+            value: 'No Filter',
+            child: Text('No Filter'),
+          ),
+          ...items.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+        ],
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  int compare<T extends Comparable?>(bool ascending, T? a, T? b) {
+    if (a == null && b == null) return 0;
+    if (a == null) return ascending ? -1 : 1;
+    if (b == null) return ascending ? 1 : -1;
+    return ascending ? a.compareTo(b) : b.compareTo(a);
+  }
+
 }
