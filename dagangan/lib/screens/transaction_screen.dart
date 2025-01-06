@@ -269,6 +269,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
   }
 
   Widget _buildCart() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       color: Colors.grey[100],
       padding: const EdgeInsets.all(8.0),
@@ -283,10 +285,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
               ),
               TextButton.icon(
                 onPressed: clearCart,
-                icon: const Icon(Icons.delete, color: Colors.red),
-                label: const Text(
+                icon: Icon(Icons.delete, color: colorScheme.tertiary),
+                label: Text(
                   'Clear Cart',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: colorScheme.tertiary),
                 ),
               ),
             ],
@@ -306,7 +308,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     children: [
                       // Tombol Kurangi Produk
                       IconButton(
-                        icon: const Icon(Icons.remove, color: Colors.red),
+                        icon: Icon(Icons.remove, color: colorScheme.tertiary),
                         onPressed: () => decrementProduct(product),
                       ),
                       // Jumlah Produk di Keranjang
@@ -319,7 +321,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       ),
                       // Tombol Tambah Produk
                       IconButton(
-                        icon: const Icon(Icons.add, color: Colors.green),
+                        icon: Icon(Icons.add, color: colorScheme.onTertiary),
                         onPressed: () => incrementProduct(product),
                       ),
                     ],
@@ -481,6 +483,8 @@ class HoverableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -491,7 +495,7 @@ class HoverableCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.deepPurple),
+            Icon(icon, size: 40, color: colorScheme.primary),
             const SizedBox(height: 8),
             Text(
               title,
@@ -513,7 +517,7 @@ class HoverableCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.remove, color: Colors.red),
+                  icon: Icon(Icons.remove, color: colorScheme.tertiary),
                   onPressed: onRemove,
                 ),
                 Text(
@@ -524,7 +528,7 @@ class HoverableCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Colors.green),
+                  icon: Icon(Icons.add, color: colorScheme.onTertiary),
                   onPressed: onTap,
                 ),
               ],

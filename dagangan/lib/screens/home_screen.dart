@@ -54,6 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Ambil warna dari ThemeData
+    final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
 
     int crossAxisCount = screenWidth > 1200
@@ -68,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: colorScheme.onPrimary),
             tooltip: 'Logout',
             onPressed: () => _logout(context),
           ),
@@ -85,11 +87,10 @@ class _HomeScreenState extends State<HomeScreen> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Colors.black, 
               ),
             ),
           ),
-
           const SizedBox(height: 20),
           Expanded(
             child: GridView.builder(
@@ -124,12 +125,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, String route) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return HoverableCard(
       icon: icon,
       title: title,
       onTap: () {
         Navigator.pushNamed(context, route);
       },
+      hoverColor: colorScheme.primary.withOpacity(0.1), // Warna hover dari tema
+      clickedColor: colorScheme.primary.withOpacity(0.2), // Warna klik dari tema
+      iconColor: colorScheme.primary, // Warna ikon dari tema
     );
   }
 }
@@ -138,12 +144,18 @@ class HoverableCard extends StatefulWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final Color hoverColor;
+  final Color clickedColor;
+  final Color iconColor;
 
   const HoverableCard({
     super.key,
     required this.icon,
     required this.title,
     required this.onTap,
+    required this.hoverColor,
+    required this.clickedColor,
+    required this.iconColor,
   });
 
   @override
@@ -156,6 +168,8 @@ class _HoverableCardState extends State<HoverableCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -170,20 +184,24 @@ class _HoverableCardState extends State<HoverableCard> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: _isClicked
-                ? Colors.deepPurple[300]
+                ? colorScheme.primary.withOpacity(0.3)
                 : _isHovered
-                    ? Colors.deepPurple[100]
+                    ? colorScheme.primary.withOpacity(0.1)
                     : Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(widget.icon, size: 40, color: Colors.deepPurple),
+              Icon(widget.icon, size: 40, color: colorScheme.primary),
               const SizedBox(height: 10),
               Text(
                 widget.title,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ],
           ),

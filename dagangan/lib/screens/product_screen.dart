@@ -48,7 +48,7 @@ class _ProductScreenState extends State<ProductScreen> {
   /// Menghapus produk dengan konfirmasi
   void deleteProduct(Product product) async {
     final isReferenced = await _productService.isProductInTransactionDetails(product.id);
-    
+
     if (isReferenced) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -86,12 +86,14 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Products - ${widget.categoryName}'),
+        backgroundColor: colorScheme.primary, // Warna dinamis
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -105,9 +107,9 @@ class _ProductScreenState extends State<ProductScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       elevation: 2,
                       child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.deepPurple,
-                          child: Icon(Icons.shopping_bag, color: Colors.white),
+                        leading: CircleAvatar(
+                          backgroundColor: colorScheme.primary, // Warna dinamis
+                          child: Icon(Icons.shopping_bag, color: colorScheme.onPrimary),
                         ),
                         title: Text(product.name),
                         subtitle: Text(
@@ -118,7 +120,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.grey),
+                              icon: Icon(Icons.edit, color: colorScheme.secondary), // Warna dinamis
                               onPressed: () => editProduct(product),
                               tooltip: 'Edit Product',
                             ),
@@ -145,16 +147,12 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ).then((_) => loadProducts()); // Refresh produk setelah menambah produk baru
         },
-        backgroundColor: Colors.deepPurple,
-        icon: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 24,
-        ),
-        label: const Text(
+        backgroundColor: colorScheme.primary, // Warna dinamis
+        icon: Icon(Icons.add, color: colorScheme.onPrimary), // Warna dinamis
+        label: Text(
           'Add Product',
           style: TextStyle(
-            color: Colors.white,
+            color: colorScheme.onPrimary, // Warna dinamis
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),

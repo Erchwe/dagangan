@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+// import 'package:printing/printing.dart';
 
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
@@ -169,18 +169,18 @@ Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
             pw.Table(
               border: pw.TableBorder.all(),
               columnWidths: {
-                0: pw.FlexColumnWidth(2),
-                1: pw.FlexColumnWidth(1),
+                0: pw.FlexColumnWidth(0.6),
+                1: pw.FlexColumnWidth(0.6),
                 2: pw.FlexColumnWidth(1),
-                3: pw.FlexColumnWidth(1),
-                4: pw.FlexColumnWidth(1),
-                5: pw.FlexColumnWidth(1),
-                6: pw.FlexColumnWidth(1),
+                3: pw.FlexColumnWidth(0.25),
+                // 4: pw.FlexColumnWidth(1),
+                // 5: pw.FlexColumnWidth(1),
+                // 6: pw.FlexColumnWidth(1),
                 // 5: pw.FlexColumnWidth(2),
               },
               children: [
                 pw.TableRow(
-                  decoration: pw.BoxDecoration(
+                  decoration: const pw.BoxDecoration(
                     color: PdfColors.grey300,
                   ),
                   children: [
@@ -189,9 +189,9 @@ Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
                     pw.Text('Product Name'),
                     pw.Text('Qty'),
                     // pw.Text('Price'),
-                    pw.Text('Payment Method'),
+                    // pw.Text('Payment Method'),
                     // pw.Text('Subtotal'),
-                    pw.Text('Cashier'),
+                    // pw.Text('Cashier'),
                   ].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: e)).toList(),
                 ),
                 ...details.map((detail) {
@@ -202,9 +202,9 @@ Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
                       pw.Text(detail.productName),
                       pw.Text(detail.quantity.toString()),
                       // pw.Text(detail.price.toString()),
-                      pw.Text(detail.transaction.paymentMethod),
+                      // pw.Text(detail.transaction.paymentMethod),
                       // pw.Text(detail.subtotal.toString()),
-                      pw.Text(detail.transaction.cashier),
+                      // pw.Text(detail.transaction.cashier),
                     ].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: e)).toList(),
                   );
                 }).toList(),
@@ -229,6 +229,8 @@ Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sales Report'),
@@ -300,46 +302,181 @@ Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            dataTableTheme: DataTableThemeData(
+                              headingRowColor: WidgetStateProperty.resolveWith<Color>(
+                                (states) => colorScheme.secondary, // Warna latar belakang header
+                              ),
+                              headingTextStyle: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white, // Warna teks header
+                              ),
+                            ),
+                          ),
                     child: DataTable(
                       sortColumnIndex: sortColumnIndex,
                       sortAscending: isAscending,
                       columns: [
                         DataColumn(
-                          label: const Text('Date'),
-                          onSort: (index, ascending) {
+                          label: Text(
+                            'Date',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onSort: (columnIndex, ascending) {
                             setState(() {
-                              sortColumnIndex = index;
+                              sortColumnIndex = columnIndex;
                               isAscending = ascending;
                               filteredDetails.sort((a, b) => compare(
-                                  ascending,
-                                  a.transaction.createdAt,
-                                  b.transaction.createdAt));
+                                ascending,
+                                a.transaction.createdAt,
+                                b.transaction.createdAt,
+                              ));
                             });
                           },
                         ),
-                        const DataColumn(label: Text('Transaction ID')),
-                        const DataColumn(label: Text('Product Name')),
-                        const DataColumn(label: Text('Quantity')),
-                        const DataColumn(label: Text('Price')),
-                        const DataColumn(label: Text('Subtotal')),
-                        const DataColumn(label: Text('Payment Method')),
-                        const DataColumn(label: Text('Cashier')),
+                        DataColumn(
+                          label: Text(
+                            'Transaction ID',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Product Name',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              sortColumnIndex = columnIndex;
+                              isAscending = ascending;
+                              filteredDetails.sort((a, b) => compare(
+                                ascending,
+                                a.productName,
+                                b.productName,
+                              ));
+                            });
+                          },
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Quantity',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              sortColumnIndex = columnIndex;
+                              isAscending = ascending;
+                              filteredDetails.sort((a, b) => compare(
+                                ascending,
+                                a.quantity,
+                                b.quantity,
+                              ));
+                            });
+                          },
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Price',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              sortColumnIndex = columnIndex;
+                              isAscending = ascending;
+                              filteredDetails.sort((a, b) => compare(
+                                ascending,
+                                a.price,
+                                b.price,
+                              ));
+                            });
+                          },
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Subtotal',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              sortColumnIndex = columnIndex;
+                              isAscending = ascending;
+                              filteredDetails.sort((a, b) => compare(
+                                ascending,
+                                a.subtotal,
+                                b.subtotal,
+                              ));
+                            });
+                          },
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Payment Method',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Cashier',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ],
-                      rows: filteredDetails.map((detail) {
-                        return DataRow(cells: [
-                          DataCell(Text(
-                              detail.transaction.createdAt.toString())),
-                          DataCell(Text(detail.transactionId)),
-                          DataCell(Text(detail.productName)),
-                          DataCell(Text(detail.quantity.toString())),
-                          DataCell(Text(formatRupiah(detail.price))),
-                          DataCell(Text(formatRupiah(detail.subtotal))),
-                          DataCell(Text(detail.transaction.paymentMethod)),
-                          DataCell(Text(detail.transaction.cashier)),
-                        ]);
-                      }).toList(),
+                      rows: List.generate(
+                        filteredDetails.length,
+                        (index) {
+                          final detail = filteredDetails[index];
+                          final isEvenRow = index % 2 == 0;
+
+                          return DataRow(
+                            color: WidgetStateProperty.resolveWith<Color?>(
+                              (Set<WidgetState> states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return Colors.blue.withOpacity(0.08);
+                                }
+                                return isEvenRow ? Colors.grey[200] : null;
+                              },
+                            ),
+                            cells: [
+                              DataCell(Text(detail.transaction.createdAt.toString())),
+                              DataCell(Text(detail.transactionId)),
+                              DataCell(Text(detail.productName)),
+                              DataCell(Text(detail.quantity.toString())),
+                              DataCell(Text(formatRupiah(detail.price))),
+                              DataCell(Text(formatRupiah(detail.subtotal))),
+                              DataCell(Text(detail.transaction.paymentMethod)),
+                              DataCell(Text(detail.transaction.cashier)),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ),
+                ),
                 ),
                 // Export Button
                 Padding(
@@ -355,7 +492,7 @@ Future<void> saveReportAsPDF(List<TransactionDetail> details) async {
                     icon: const Icon(Icons.file_download),
                     label: const Text("Export Report"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: colorScheme.tertiary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

@@ -15,6 +15,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
       _showSuccessModal();
     });
   }
+  
 
   /// Fungsi untuk menampilkan modal sukses transaksi
   void _showSuccessModal() {
@@ -22,6 +23,8 @@ class _SuccessScreenState extends State<SuccessScreen> {
       context: context,
       barrierDismissible: false, // Modal tidak bisa ditutup manual
       builder: (BuildContext context) {
+      final colorScheme = Theme.of(context).colorScheme;
+
         return Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -50,7 +53,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       return LinearProgressIndicator(
                         value: value,
                         backgroundColor: Colors.grey[300],
-                        color: Colors.deepPurple,
+                        color: colorScheme.primary,
                       );
                     },
                     onEnd: () {

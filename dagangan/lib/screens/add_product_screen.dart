@@ -55,9 +55,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       try {
         await _productService.addProduct(newProduct);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product added successfully'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Product added successfully'),
+            backgroundColor: Theme.of(context).colorScheme.secondary, // Warna dinamis
           ),
         );
         Navigator.pop(context); // Kembali ke halaman produk
@@ -65,7 +65,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to add product: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error, // Warna dinamis
           ),
         );
       } finally {
@@ -78,9 +78,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Product'),
+        backgroundColor: colorScheme.primary, // Warna dinamis
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -93,9 +96,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 // Product Name
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Product Name',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   validator: (value) =>
                       value == null || value.isEmpty ? 'Enter product name' : null,
@@ -105,9 +116,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 // Price
                 TextFormField(
                   controller: _priceController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Price',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) =>
@@ -118,9 +137,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 // Stock
                 TextFormField(
                   controller: _stockController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Stock',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) =>
@@ -130,22 +157,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                 // Category (Non-editable Field)
                 TextFormField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Category',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   controller: TextEditingController(text: widget.categoryName),
                   enabled: false,
-                  style: const TextStyle(color: Colors.grey),
+                  style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
                 ),
                 const SizedBox(height: 12),
 
                 // Product Description
                 TextFormField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Product Description',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   maxLines: 3,
                   validator: (value) =>
@@ -159,16 +198,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   child: ElevatedButton(
                     onPressed: isLoading ? null : _addProduct,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary, // Warna dinamis
+                      foregroundColor: colorScheme.onPrimary, // Warna teks dinamis
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: isLoading
-                        ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ? CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
                           )
                         : const Text(
                             'Add Product',

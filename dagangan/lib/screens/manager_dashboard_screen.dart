@@ -55,6 +55,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final colorScheme = Theme.of(context).colorScheme;
 
     int crossAxisCount = screenWidth > 1200
         ? 4
@@ -68,7 +69,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: colorScheme.onPrimary),
             tooltip: 'Logout',
             onPressed: () => _logout(context),
           ),
@@ -85,7 +86,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Colors.black,
               ),
             ),
           ),
@@ -98,11 +99,10 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              itemCount: 4,
+              itemCount: 3,
               itemBuilder: (context, index) {
                 final menuItems = [
                   {'icon': Icons.analytics, 'title': 'Sales Reports', 'route': '/sales-reports'},
-                  {'icon': Icons.people, 'title': 'Manage Staff', 'route': '/manage-staff'},
                   {'icon': Icons.settings, 'title': 'Settings', 'route': '/settings'},
                   {'icon': Icons.support_agent, 'title': 'Support', 'route': '/support'},
                 ];
@@ -123,6 +123,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   }
 
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, String route) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -133,7 +135,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.deepPurple),
+            Icon(icon, size: 40, color: colorScheme.primary),
             const SizedBox(height: 10),
             Text(
               title,

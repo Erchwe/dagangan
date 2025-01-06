@@ -249,6 +249,8 @@ class _CashInputScreenState extends State<CashInputScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final colorScheme = Theme.of(context).colorScheme;
+
 
     return Scaffold(
       appBar: AppBar(title: const Text('Cash Payment Input')),
@@ -290,7 +292,7 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.remove, color: Colors.red),
+                                        icon: Icon(Icons.remove, color: colorScheme.tertiary),
                                         onPressed: () => decrementDenomination(denomination),
                                       ),
                                       Expanded(
@@ -309,7 +311,7 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                             ),
                                           ),
                                       IconButton(
-                                        icon: const Icon(Icons.add, color: Colors.green),
+                                        icon: Icon(Icons.add, color: colorScheme.onTertiary),
                                         onPressed: () => incrementDenomination(denomination),
                                       ),
                                     ],
@@ -356,11 +358,11 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                               mainAxisAlignment: MainAxisAlignment.end,
                                               children: [
                                                 IconButton(
-                                                  icon: const Icon(Icons.remove, color: Colors.red),
+                                                  icon: Icon(Icons.remove, color: colorScheme.tertiary),
                                                   onPressed: () => decrementDenomination(denomination),
                                                 ),
                                                 IconButton(
-                                                  icon: const Icon(Icons.add, color: Colors.green),
+                                                  icon: Icon(Icons.add, color: colorScheme.onTertiary),
                                                   onPressed: () => incrementDenomination(denomination),
                                                 ),
                                               ],
@@ -384,7 +386,7 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               IconButton(
-                                                icon: const Icon(Icons.remove, color: Colors.red),
+                                                icon: Icon(Icons.remove, color: colorScheme.tertiary),
                                                 onPressed: () => decrementDenomination(denomination),
                                               ),
                                               Flexible(
@@ -403,7 +405,7 @@ class _CashInputScreenState extends State<CashInputScreen> {
                                                 ),
                                               ),
                                               IconButton(
-                                                icon: const Icon(Icons.add, color: Colors.green),
+                                                icon: Icon(Icons.add, color: colorScheme.onTertiary),
                                                 onPressed: () => incrementDenomination(denomination),
                                               ),
                                             ],
@@ -460,7 +462,7 @@ class _CashInputScreenState extends State<CashInputScreen> {
                     child: ElevatedButton(
                       onPressed: validateCash,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
+                        backgroundColor: colorScheme.secondary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
                         shape: RoundedRectangleBorder(

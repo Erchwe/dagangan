@@ -177,6 +177,8 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
 
   /// Mendapatkan daftar barang berdasarkan cart
   List<Widget> _buildProductList() {
+    final colorScheme = Theme.of(context).colorScheme;
+  
     return widget.cart.entries.map((entry) {
       final product = widget.products.firstWhere((p) => p.id == entry.key);
       final qty = entry.value;
@@ -188,7 +190,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Ikon Barang
-            const Icon(Icons.shopping_cart, size: 40, color: Colors.deepPurple),
+            Icon(Icons.shopping_cart, size: 40, color: colorScheme.primary),
             const SizedBox(width: 12),
 
             // Nama Barang & Qty
@@ -280,11 +282,13 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction Summary'),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: colorScheme.primary,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -316,7 +320,7 @@ class _ConfirmPaymentScreenState extends State<ConfirmPaymentScreen> {
                 child: ElevatedButton(
                   onPressed: isLoading ? null : saveTransaction,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: colorScheme.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                         vertical: 14, horizontal: 24),
