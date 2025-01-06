@@ -48,16 +48,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
         paymentMethod == 'cash' ? '/cash-input' : '/confirm-payment',
         arguments: {
           'cart': cart,
-          'products': categorizedProducts.values.expand((list) => list).toList(),
+          'products':
+              categorizedProducts.values.expand((list) => list).toList(),
           'paymentMethod': paymentMethod,
           'totalAmount': cart.entries.fold(
             0.0,
-            (total, entry) => total +
+            (total, entry) =>
+                total +
                 (categorizedProducts.values
-                    .expand((list) => list)
-                    .firstWhere((p) => p.id == entry.key)
-                    .price *
-                entry.value),
+                        .expand((list) => list)
+                        .firstWhere((p) => p.id == entry.key)
+                        .price *
+                    entry.value),
           ),
           'cashier': cashier,
         },
@@ -129,57 +131,54 @@ class _TransactionScreenState extends State<TransactionScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Transaction Input')),
-      body: SingleChildScrollView(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            bool isLandscape = constraints.maxWidth > constraints.maxHeight;
-        
-            return isLandscape
-                ? Row(
-                    children: [
-                      Expanded(
-                        flex: cart.isNotEmpty ? 3 : 5,
-                        child: _buildProductListByCategory(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isLandscape = constraints.maxWidth > constraints.maxHeight;
+
+          return isLandscape
+              ? Row(
+                  children: [
+                    Expanded(
+                      flex: cart.isNotEmpty ? 3 : 5,
+                      child: _buildProductListByCategory(),
+                    ),
+                    if (cart.isNotEmpty)
+                      Container(
+                        width: 1,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(vertical: 8),
                       ),
-                      if (cart.isNotEmpty)
-                        Container(
-                          width: 1,
-                          color: Colors.grey[300],
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                      if (cart.isNotEmpty)
-                        Expanded(
-                          flex: 2,
-                          child: _buildCart(),
-                        ),
-                    ],
-                  )
-                : Column(
-                    children: [
+                    if (cart.isNotEmpty)
                       Expanded(
-                        flex: cart.isNotEmpty ? 3 : 5,
-                        child: _buildProductListByCategory(),
+                        flex: 2,
+                        child: _buildCart(),
                       ),
-                      if (cart.isNotEmpty)
-                        Container(
-                          height: 1,
-                          color: Colors.grey[300],
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                      if (cart.isNotEmpty)
-                        Expanded(
-                          flex: 2,
-                          child: _buildCart(),
-                        ),
-                    ],
-                  );
-          },
-        ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    Expanded(
+                      flex: cart.isNotEmpty ? 3 : 5,
+                      child: _buildProductListByCategory(),
+                    ),
+                    if (cart.isNotEmpty)
+                      Container(
+                        height: 1,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                    if (cart.isNotEmpty)
+                      Expanded(
+                        flex: 2,
+                        child: _buildCart(),
+                      ),
+                  ],
+                );
+        },
       ),
     );
   }
@@ -236,7 +235,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: crossAxisCount,
                             crossAxisSpacing: 8.0,
                             mainAxisSpacing: 8.0,
@@ -387,16 +387,19 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     '/cash-input',
                     arguments: {
                       'cart': cart,
-                      'products': categorizedProducts.values.expand((list) => list).toList(),
+                      'products': categorizedProducts.values
+                          .expand((list) => list)
+                          .toList(),
                       'paymentMethod': 'cash',
                       'totalAmount': cart.entries.fold(
                         0.0,
-                        (total, entry) => total +
+                        (total, entry) =>
+                            total +
                             (categorizedProducts.values
-                                .expand((list) => list)
-                                .firstWhere((p) => p.id == entry.key)
-                                .price *
-                            entry.value),
+                                    .expand((list) => list)
+                                    .firstWhere((p) => p.id == entry.key)
+                                    .price *
+                                entry.value),
                       ),
                       'cashier': cashier,
                     },
@@ -427,7 +430,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     '/confirm-payment',
                     arguments: {
                       'cart': cart,
-                      'products': categorizedProducts.values.expand((list) => list).toList(),
+                      'products': categorizedProducts.values
+                          .expand((list) => list)
+                          .toList(),
                       'paymentMethod': 'cashless',
                       'totalAmount': cart.entries.fold(
                         0.0,
@@ -438,10 +443,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
                           return total + (product.price * entry.value);
                         },
                       ),
-                      'cashier': cashier, // Pastikan displayName berisi data valid
+                      'cashier':
+                          cashier, // Pastikan displayName berisi data valid
                     },
                   );
-
                 }
               },
               icon: const Icon(Icons.credit_card),
@@ -461,8 +466,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 }
-
-
 
 /// Widget HoverableCard
 class HoverableCard extends StatelessWidget {
