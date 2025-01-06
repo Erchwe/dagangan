@@ -10,6 +10,7 @@ import '../screens/success_screen.dart';
 import '../screens/manager_dashboard_screen.dart';
 import '../screens/sales_report_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/support_screen.dart';
 
 import '../models/product_model.dart';
 
@@ -62,6 +63,5 @@ final Map<String, WidgetBuilder> appRoutes = {
   '/success': (context) => const SuccessScreen(),
   '/sales-reports': (context) => const SalesReportScreen(),
   '/settings': (context) => const SettingsScreen(),
-
-
+  '/support': (context) => const SupportScreen(),
 };
