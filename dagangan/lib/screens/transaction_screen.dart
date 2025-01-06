@@ -134,50 +134,52 @@ class _TransactionScreenState extends State<TransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Transaction Input')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isLandscape = constraints.maxWidth > constraints.maxHeight;
-
-          return isLandscape
-              ? Row(
-                  children: [
-                    Expanded(
-                      flex: cart.isNotEmpty ? 3 : 5,
-                      child: _buildProductListByCategory(),
-                    ),
-                    if (cart.isNotEmpty)
-                      Container(
-                        width: 1,
-                        color: Colors.grey[300],
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                    if (cart.isNotEmpty)
+      body: SingleChildScrollView(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            bool isLandscape = constraints.maxWidth > constraints.maxHeight;
+        
+            return isLandscape
+                ? Row(
+                    children: [
                       Expanded(
-                        flex: 2,
-                        child: _buildCart(),
+                        flex: cart.isNotEmpty ? 3 : 5,
+                        child: _buildProductListByCategory(),
                       ),
-                  ],
-                )
-              : Column(
-                  children: [
-                    Expanded(
-                      flex: cart.isNotEmpty ? 3 : 5,
-                      child: _buildProductListByCategory(),
-                    ),
-                    if (cart.isNotEmpty)
-                      Container(
-                        height: 1,
-                        color: Colors.grey[300],
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                    if (cart.isNotEmpty)
+                      if (cart.isNotEmpty)
+                        Container(
+                          width: 1,
+                          color: Colors.grey[300],
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      if (cart.isNotEmpty)
+                        Expanded(
+                          flex: 2,
+                          child: _buildCart(),
+                        ),
+                    ],
+                  )
+                : Column(
+                    children: [
                       Expanded(
-                        flex: 2,
-                        child: _buildCart(),
+                        flex: cart.isNotEmpty ? 3 : 5,
+                        child: _buildProductListByCategory(),
                       ),
-                  ],
-                );
-        },
+                      if (cart.isNotEmpty)
+                        Container(
+                          height: 1,
+                          color: Colors.grey[300],
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                      if (cart.isNotEmpty)
+                        Expanded(
+                          flex: 2,
+                          child: _buildCart(),
+                        ),
+                    ],
+                  );
+          },
+        ),
       ),
     );
   }
