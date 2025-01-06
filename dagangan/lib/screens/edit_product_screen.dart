@@ -22,8 +22,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
   late TextEditingController priceController;
   late TextEditingController stockController;
 
-  String? selectedCategoryId; 
-  List<Category> categories = []; 
+  String? selectedCategoryId;
+  List<Category> categories = [];
 
   @override
   void initState() {
@@ -57,16 +57,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
       await _productService.updateProduct(updatedProduct);
 
-      Navigator.pop(context); 
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product updated successfully')),
+        SnackBar(
+          content: const Text('Product updated successfully'),
+          backgroundColor: Theme.of(context).colorScheme.secondary, // Warna dinamis
+        ),
       );
     } catch (e) {
-      print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to update product: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error, // Warna dinamis
         ),
       );
     }
@@ -74,9 +76,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Product'),
+        backgroundColor: colorScheme.primary, // Warna dinamis
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -85,34 +90,66 @@ class _EditProductScreenState extends State<EditProductScreen> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Product Name',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: descController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Product Description',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: priceController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Price',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: stockController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Stock',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -120,9 +157,17 @@ class _EditProductScreenState extends State<EditProductScreen> {
               DropdownButtonFormField<String>(
                 value: selectedCategoryId,
                 isExpanded: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Select Category',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.secondary, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 items: categories.map((category) {
                   return DropdownMenuItem<String>(
@@ -134,26 +179,25 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   setState(() {
                     selectedCategoryId = value;
                   });
-                  print('Selected Category ID: $value');
                 },
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: saveChanges,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6A11CB),
-                  foregroundColor: Colors.white, 
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16), 
+                  backgroundColor: colorScheme.primary, // Warna dinamis
+                  foregroundColor: colorScheme.onPrimary, // Warna teks dinamis
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), 
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  minimumSize: const Size(double.infinity, 50), 
+                  minimumSize: const Size(double.infinity, 50),
                 ),
                 child: const Text(
                   'Save Changes',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold, 
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

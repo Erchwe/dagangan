@@ -4,6 +4,16 @@ import '../models/product_model.dart';
 class ProductService {
   final supabase = Supabase.instance.client;
 
+  Future<bool> isProductInTransactionDetails(String productId) async {
+    final response = await supabase
+        .from('transaction_details') // Ganti dengan nama tabel sebenarnya
+        .select('id')
+        .eq('product_id', productId);
+
+    return response.isNotEmpty;
+  }
+
+
   /// **Fetch Products by Category**
   Future<List<Product>> fetchProductsByCategory(String categoryId) async {
     final response = await supabase

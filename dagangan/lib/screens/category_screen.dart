@@ -30,7 +30,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
     });
   }
 
-  /// New cat modal
   void _showAddCategoryModal() {
     _nameController.clear();
     _descriptionController.clear();
@@ -38,6 +37,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final colorScheme = Theme.of(context).colorScheme;
+
         return AlertDialog(
           title: const Text(
             'New Category',
@@ -56,12 +57,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   decoration: InputDecoration(
                     labelText: 'New Category Name',
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6), 
-                      borderSide: BorderSide(color: Colors.grey.shade500, width: 1.5),
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                      borderSide: BorderSide(color: colorScheme.secondary, width: 1),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
@@ -75,18 +76,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-
                 TextFormField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
                     labelText: 'Description',
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey.shade500, width: 1.5),
+                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+                      borderSide: BorderSide(color: colorScheme.secondary, width: 1),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
@@ -102,7 +102,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: colorScheme.onSecondary),
               ),
             ),
             ElevatedButton(
@@ -113,8 +113,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -131,7 +131,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  /// Fungsi untuk menambahkan kategori ke database
   Future<void> _addCategory() async {
     final String name = _nameController.text.trim();
     final String description = _descriptionController.text.trim();
@@ -149,7 +148,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal menambahkan kategori: $e'),
+            content: Text('Failed to add category: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -160,8 +159,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    // Column (sesuai width)
     int crossAxisCount = screenWidth > 1200
         ? 4
         : screenWidth > 800
@@ -169,7 +168,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
             : 2;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(
+        title: const Text('Categories'),
+        backgroundColor: colorScheme.primary,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
@@ -201,24 +203,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddCategoryModal,
-        backgroundColor: Colors.deepPurple,
-        icon: const Icon(
-          Icons.add,
-          color: Colors.white, 
-        ),
+        backgroundColor: colorScheme.primary,
+        icon: const Icon(Icons.add),
         label: const Text(
           'Add Category',
-          style: TextStyle(
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 }
 
-// Widget Card (interaction animation)
 class HoverableCard extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
@@ -239,6 +234,8 @@ class _HoverableCardState extends State<HoverableCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -253,9 +250,9 @@ class _HoverableCardState extends State<HoverableCard> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: _isClicked
-                ? Colors.deepPurple[300]
+                ? colorScheme.primary.withOpacity(0.3)
                 : _isHovered
-                    ? Colors.deepPurple[100]
+                    ? colorScheme.primary.withOpacity(0.1)
                     : Colors.white,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
@@ -263,7 +260,7 @@ class _HoverableCardState extends State<HoverableCard> {
                 color: Colors.grey.withOpacity(0.2),
                 spreadRadius: 1,
                 blurRadius: 4,
-              )
+              ),
             ],
           ),
           child: Center(
@@ -272,7 +269,7 @@ class _HoverableCardState extends State<HoverableCard> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _isHovered ? Colors.deepPurple : Colors.black87,
+                color: _isHovered ? colorScheme.primary : Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),

@@ -3,14 +3,14 @@ import 'package:dagangan/core/auth_services.dart';
 import 'package:dagangan/screens/login_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ManagerDashboardScreen extends StatefulWidget {
+  const ManagerDashboardScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ManagerDashboardScreen> createState() => _ManagerDashboardScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
   String displayName = 'Loading...';
 
   @override
@@ -54,9 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil warna dari ThemeData
-    final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
+    final colorScheme = Theme.of(context).colorScheme;
 
     int crossAxisCount = screenWidth > 1200
         ? 4
@@ -66,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Manager Dashboard'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -83,11 +82,11 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              'On Shift: $displayName',
+              'Welcome, Manager: $displayName',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black, 
+                color: Colors.black,
               ),
             ),
           ),
@@ -100,12 +99,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              itemCount: 4,
+              itemCount: 3,
               itemBuilder: (context, index) {
                 final menuItems = [
-                  {'icon': Icons.shopping_bag, 'title': 'Manage Products', 'route': '/categories'},
+                  {'icon': Icons.analytics, 'title': 'Sales Reports', 'route': '/sales-reports'},
                   {'icon': Icons.settings, 'title': 'Settings', 'route': '/settings'},
-                  {'icon': Icons.shopping_cart, 'title': 'Input Transaction', 'route': '/transaction'},
                   {'icon': Icons.support_agent, 'title': 'Support', 'route': '/support'},
                 ];
 
@@ -127,84 +125,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMenuItem(BuildContext context, IconData icon, String title, String route) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return HoverableCard(
-      icon: icon,
-      title: title,
-      onTap: () {
-        Navigator.pushNamed(context, route);
-      },
-      hoverColor: colorScheme.primary.withOpacity(0.1), // Warna hover dari tema
-      clickedColor: colorScheme.primary.withOpacity(0.2), // Warna klik dari tema
-      iconColor: colorScheme.primary, // Warna ikon dari tema
-    );
-  }
-}
-
-class HoverableCard extends StatefulWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final Color hoverColor;
-  final Color clickedColor;
-  final Color iconColor;
-
-  const HoverableCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    required this.hoverColor,
-    required this.clickedColor,
-    required this.iconColor,
-  });
-
-  @override
-  State<HoverableCard> createState() => _HoverableCardState();
-}
-
-class _HoverableCardState extends State<HoverableCard> {
-  bool _isHovered = false;
-  bool _isClicked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isClicked = true),
-        onTapUp: (_) {
-          setState(() => _isClicked = false);
-          widget.onTap();
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(context, route);
         },
-        onTapCancel: () => setState(() => _isClicked = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: _isClicked
-                ? colorScheme.primary.withOpacity(0.3)
-                : _isHovered
-                    ? colorScheme.primary.withOpacity(0.1)
-                    : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, size: 40, color: colorScheme.primary),
-              const SizedBox(height: 10),
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: colorScheme.primary),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );

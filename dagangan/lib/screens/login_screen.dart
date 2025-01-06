@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dagangan/core/auth_services.dart';
 import 'package:dagangan/screens/home_screen.dart';
+import 'package:dagangan/screens/manager_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _loadRememberedUser();
   }
 
-  /// 🔑 **Load Remembered User**
   Future<void> _loadRememberedUser() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('remembered_email');
@@ -36,7 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// 🔒 **Login Logic**
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -47,6 +47,20 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text.trim(),
       );
 
+      final user = Supabase.instance.client.auth.currentUser;
+
+      if (user?.email == 'manager@gmail.com') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ManagerDashboardScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+
       if (_rememberMe) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('remembered_email', _emailController.text.trim());
@@ -56,11 +70,6 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.remove('remembered_email');
         await prefs.remove('remember_me');
       }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -83,44 +92,44 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 26, 141, 241),
-              Color.fromARGB(255, 93, 157, 212),
-              Color.fromARGB(255, 157, 221, 255),
+              Color(0xFF6A11CB),
+              Color(0xFF2575FC),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: Center(
           child: SingleChildScrollView(
             child: Card(
-              elevation: 8,
+              color: Colors.white,
+              elevation: 10,
               margin: const EdgeInsets.symmetric(horizontal: 24),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(32.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      'Welcome Back 👋',
+                      'Welcome 👋',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Color(0xFF6A11CB),
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Please login to your account',
+                      'Please login to continue',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
@@ -131,49 +140,32 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline),
+                        prefixIcon: const Icon(Icons.lock),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _rememberMe,
-                              onChanged: (value) {
-                                setState(() {
-                                  _rememberMe = value ?? false;
-                                });
-                              },
-                              activeColor: const Color(0xFF6A11CB),
-                            ),
-                            const Text('Remember Me'),
-                          ],
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Forgot Password? Coming soon!'),
-                              ),
-                            );
+                        Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value ?? false;
+                            });
                           },
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(color: Colors.blueAccent),
-                          ),
+                          activeColor: const Color(0xFF6A11CB),
                         ),
+                        const Text('Remember Me'),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -182,8 +174,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                           backgroundColor: const Color(0xFF6A11CB),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -195,9 +187,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text(
                                 'Login',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  color: Colors.white
                                 ),
                               ),
                       ),
@@ -212,6 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -219,3 +212,4 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 }
+
